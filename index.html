@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Creative Preview Editor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Load dom-to-image from CDN -->
+  <!-- Load dom-to-image for screenshot capture -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
   <style>
     /* Parent page layout */
@@ -44,6 +44,8 @@
       padding: 10px;
       font-size: 1rem;
     }
+    /* Initially hide interstitial sub-type dropdown; we'll show it if creativeType is interstitial */
+    .sub-inputs { display: none; }
     .preview {
       flex-grow: 1;
       display: flex;
@@ -67,33 +69,45 @@
       <option value="pin">Pin on Map</option>
     </select>
     
-    <!-- File inputs (logo and image) at the top -->
+    <!-- For Interstitial, show a sub-type dropdown -->
+    <div id="interstitialSubWrapper" class="sub-inputs">
+      <label for="interstitialSubType">Interstitial Sub-Type:</label>
+      <select id="interstitialSubType">
+        <option value="free">Free Text</option>
+        <option value="static">Static Image</option>
+      </select>
+    </div>
+    
+    <!-- File inputs -->
     <label for="logoFileInput">Logo:</label>
     <input type="file" id="logoFileInput" accept="image/*">
     
     <label for="imageFileInput">Image:</label>
     <input type="file" id="imageFileInput" accept="image/*">
     
-    <label for="titleInput">Title:</label>
-    <input type="text" id="titleInput" placeholder="Enter title">
-    
-    <label for="subtitleInput">Subtitle (optional):</label>
-    <input type="text" id="subtitleInput" placeholder="Enter subtitle (optional)">
-    
-    <label for="ctaInput">CTA Text:</label>
-    <input type="text" id="ctaInput" placeholder="Enter CTA text">
-    
-    <label for="titleColorInput">Title Color:</label>
-    <input type="text" id="titleColorInput" placeholder="e.g., red or #ff0000">
-    
-    <label for="subtitleColorInput">Subtitle Color:</label>
-    <input type="text" id="subtitleColorInput" placeholder="e.g., red or #ff0000">
-    
-    <label for="ctaTextColorInput">CTA Text Color:</label>
-    <input type="text" id="ctaTextColorInput" placeholder="e.g., white or #fff">
-    
-    <label for="ctaBgColorInput">CTA Background Color:</label>
-    <input type="text" id="ctaBgColorInput" placeholder="e.g., #0F8F42">
+    <!-- Text & color inputs (only relevant for Free Text and Pin) -->
+    <div id="textFields">
+      <label for="titleInput">Title:</label>
+      <input type="text" id="titleInput" placeholder="Enter title">
+      
+      <label for="subtitleInput">Subtitle (optional):</label>
+      <input type="text" id="subtitleInput" placeholder="Enter subtitle (optional)">
+      
+      <label for="ctaInput">CTA Text:</label>
+      <input type="text" id="ctaInput" placeholder="Enter CTA text">
+      
+      <label for="titleColorInput">Title Color:</label>
+      <input type="text" id="titleColorInput" placeholder="e.g., red or #ff0000">
+      
+      <label for="subtitleColorInput">Subtitle Color:</label>
+      <input type="text" id="subtitleColorInput" placeholder="e.g., red or #ff0000">
+      
+      <label for="ctaTextColorInput">CTA Text Color:</label>
+      <input type="text" id="ctaTextColorInput" placeholder="e.g., white or #fff">
+      
+      <label for="ctaBgColorInput">CTA Background Color:</label>
+      <input type="text" id="ctaBgColorInput" placeholder="e.g., #0F8F42">
+    </div>
     
     <button id="downloadBtn">Download Screenshot</button>
     <button id="copyBtn">Copy to Adops</button>
@@ -104,10 +118,43 @@
   </div>
   
   <script>
+    // --- Show interstitial sub-type dropdown by default if creativeType is "interstitial" ---
+    const creativeTypeSelect = document.getElementById("creativeType");
+    const interstitialSubWrapper = document.getElementById("interstitialSubWrapper");
+    const textFields = document.getElementById("textFields");
+    function updateVisibility() {
+      if (creativeTypeSelect.value === "interstitial") {
+        interstitialSubWrapper.style.display = "block";
+        // If static, hide text fields; if free, show them.
+        if(document.getElementById("interstitialSubType").value === "static"){
+          textFields.style.display = "none";
+        } else {
+          textFields.style.display = "block";
+        }
+      } else {
+        interstitialSubWrapper.style.display = "none";
+        textFields.style.display = "block";
+      }
+    }
+    creativeTypeSelect.addEventListener("change", function() {
+      updateVisibility();
+      loadTemplate();
+    });
+    document.getElementById("interstitialSubType").addEventListener("change", function() {
+      updateVisibility();
+      loadTemplate();
+    });
+    // Call updateVisibility on page load
+    updateVisibility();
+    
+    // Close button SVG (provided)
+    const closeButtonSVG = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjRweCIgaGVpZ2h0PSIyNHB4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpieGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+aW1nX2Nsb3NlX3JvdW5kZWRfMjRfZGFyazwvdGl0bGU+CiAgICA8ZGVmcz4KICAgICAgICA8cG9seWdvbiBpZD0icGF0aC0xIiBwb2ludHM9IjE2LjQwMDAwMzggNiAxOCA3LjYwMDAwNjk0IDEzLjU5OTQxOTIgMTEuOTk5NjU4MyAxOCAxNi4zOTk5OTk4IDE2LjQwMDAwMzggMTggMTEuOTk5NjYwNiAxMy41OTk0MTg2IDcuNjAwMDAwNzUgMTggNiAxNi4zOTk5OTk4IDEwLjM5OTkwMTkgMTEuOTk5NjU4MyA2IDcuNjAwMDA2OTQgNy42MDAwMDA3NSA2IDExLjk5OTY2MDYgMTAuMzk5OTAwMyI+PC9wb2x5Z29uPgogICAgPC9kZWZzPgogICAgPGcgaWQ9IkludGVyc3RpdGlhbCIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgaWQ9IlN1Z2dlc3RlZC1yb3V0ZXMtSW50ZXJzdGl0aWFsLUdlbmVyaWMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zMTkuMDAwMDAwLCAtNzMuMDAwMDAwKSI+CiAgICAgICAgICAgIDxnIGlkPSJHcm91cC01IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNi4wMDAwMDAsIDU3LjAwMDAwMCkiPgogICAgICAgICAgICAgICAgPGcgaWQ9ImltZ19jbG9zZV9yb3VuZGVkXzI0X2RhcmsiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMwMy4wMDAwMDAsIDE2LjAwMDAwMCkiPgogICAgICAgICAgICAgICAgICAgIDxjaXJjbGUgaWQ9Ik92YWwiIGZpbGwtb3BhY2l0eT0iMC44IiBmaWxsPSIjRkZGRkZGIiBmaWxsLXJ1bGU9Im5vbnplcm8iIGN4PSIxMiIgY3k9IjEyIiByPSIxMiI+PC9jaXJjbGU+CiAgICAgICAgICAgICAgICAgICAgPG1hc2sgaWQ9Im1hc2stMiIgZmlsbD0id2hpdGUiPgogICAgICAgICAgICAgICAgICAgICAgICA8dXNlIHhsaW5rOmhyZWY9IiNwYXRoLTEiPjwvdXNlPgogICAgICAgICAgICAgICAgICAgIDwvbWFzaz4KICAgICAgICAgICAgICAgICAgICA8dXNlIGlkPSJDbGlwLTUiIGZpbGw9IiMxRjFGMjEiIGZpbGwtcnVsZT0ibm9uemVybyIgeGxpbms6aHJlZj0iI3BhdGgtMSI+PC91c2U+CiAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgIDwvZz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPg==';
+    
     // -------------------------------
-    // Template for the Interstitial creative
+    // Templates
     // -------------------------------
-    const interstitialTemplate = `
+    // Free Text (Interstitial) Template – includes close button
+    const freeTextTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -115,11 +162,7 @@
   <meta charset="UTF-8">
   <style>
     html, body { margin: 0; padding: 0; background: white; height: 844px; }
-    body {
-      position: relative;
-      padding: 57px 16px 56px 16px;
-      box-sizing: border-box;
-    }
+    body { position: relative; padding: 57px 16px 56px 16px; box-sizing: border-box; }
     .container {
       width: calc(100% - 24px);
       height: calc(100% - 24px);
@@ -128,6 +171,18 @@
       border-radius: 8px;
       background: white;
       overflow: visible;
+    }
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background-image: url('${closeButtonSVG}');
+      background-size: cover;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      z-index: 10;
     }
     .banner {
       position: relative;
@@ -149,11 +204,7 @@
       z-index: 2;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    .banner-logo img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: contain;
-    }
+    .banner-logo img { width: 100%; height: 100%; object-fit: contain; }
     .banner-image {
       width: 100%;
       height: 75%;
@@ -165,11 +216,7 @@
       overflow: hidden;
       z-index: 1;
     }
-    .banner-image img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: contain;
-    }
+    .banner-image img { width: 100%; height: 100%; object-fit: contain; }
     .banner-content {
       margin-top: 16px;
       text-align: center;
@@ -202,6 +249,7 @@
 </head>
 <body>
   <div class="container">
+    <div class="close-button"></div>
     <div class="banner">
       <div class="banner-logo">
         <img src="Moovit-app-logo.png" alt="Logo">
@@ -220,9 +268,50 @@
 </html>
     `;
     
-    // -------------------------------
-    // Template for the Pin on Map creative
-    // -------------------------------
+    // Static Image (Interstitial) Template – no logo, only a static image and a close button
+    const staticTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=390, initial-scale=1">
+  <meta charset="UTF-8">
+  <style>
+    html, body { margin: 0; padding: 0; background: white; width: 390px; height: 844px; }
+    .container {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+    }
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background-image: url('${closeButtonSVG}');
+      background-size: cover;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .static-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="close-button"></div>
+    <img class="static-image" src="interstatic.jpg" alt="Static Image">
+  </div>
+</body>
+</html>
+    `;
+    
+    // Pin on Map Template – unchanged except for close button is not needed here.
     const pinOnMapTemplate = `
 <!DOCTYPE html>
 <html>
@@ -257,11 +346,7 @@
       z-index: 2;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    .banner-logo img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: contain;
-    }
+    .banner-logo img { width: 100%; height: 100%; object-fit: contain; }
     .banner-image {
       width: 320px;
       height: 240px;
@@ -270,11 +355,7 @@
       z-index: 1;
       margin-top: 10px;
     }
-    .banner-image img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: contain;
-    }
+    .banner-image img { width: 100%; height: 100%; object-fit: contain; }
     .banner-content {
       text-align: center;
       margin-top: 10px;
@@ -308,7 +389,7 @@
 </head>
 <body>
   <div class="base-wrapper">
-    <img class="base-image" src="https://ofir-g.github.io/moovit-creatives-previews/pintemplate.png" alt="Background">
+    <img class="base-image" src="pin template.png" alt="Background">
     <div class="overlay">
       <div class="banner">
         <div class="banner-logo">
@@ -330,59 +411,75 @@
     `;
     
     // -------------------------------
-    // Load the selected template into the iframe
+    // Overall loading logic
     // -------------------------------
     let currentCreativeType = "interstitial";
+    let currentInterstitialSubType = "free"; // default sub-type
     const iframe = document.getElementById("previewFrame");
     
     function loadTemplate() {
       currentCreativeType = document.getElementById("creativeType").value;
-      let template = currentCreativeType === "pin" ? pinOnMapTemplate : interstitialTemplate;
+      let template = "";
+      if (currentCreativeType === "interstitial") {
+        currentInterstitialSubType = document.getElementById("interstitialSubType").value;
+        if (currentInterstitialSubType === "static") {
+          template = staticTemplate;
+        } else {
+          template = freeTextTemplate;
+        }
+      } else if (currentCreativeType === "pin") {
+        template = pinOnMapTemplate;
+      }
       iframe.contentDocument.open();
       iframe.contentDocument.write(template);
       iframe.contentDocument.close();
       setTimeout(updatePreview, 200);
     }
     
+    // Ensure sub-type dropdown is visible on load when creativeType is interstitial.
     document.getElementById("creativeType").addEventListener("change", loadTemplate);
+    document.getElementById("interstitialSubType").addEventListener("change", loadTemplate);
     loadTemplate();
     
     // -------------------------------
-    // Update text and color in the preview
+    // Update text and color (only for Free Text and Pin)
     // -------------------------------
     function updatePreview() {
       const doc = iframe.contentDocument;
-      const title = document.getElementById("titleInput").value || "Default Title";
-      const subtitle = document.getElementById("subtitleInput").value;
-      const cta = document.getElementById("ctaInput").value || "Default CTA";
-      const titleColor = document.getElementById("titleColorInput").value || "#292a30";
-      const subtitleColor = document.getElementById("subtitleColorInput").value || "#292a30";
-      const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
-      const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
-      
-      const titleElem = doc.querySelector(".title");
-      if (titleElem) {
-        titleElem.textContent = title;
-        titleElem.style.color = titleColor;
-      }
-      
-      const subtitleElem = doc.querySelector(".sub-title");
-      const subtitleSpan = doc.querySelector(".sub-title span");
-      if (subtitleElem) {
-        if (subtitle.trim() === "") {
-          subtitleElem.style.display = "none";
-        } else {
-          subtitleElem.style.display = "block";
-          subtitleSpan.textContent = subtitle;
-          subtitleElem.style.color = subtitleColor;
+      if (currentCreativeType === "interstitial" && currentInterstitialSubType === "free" ||
+          currentCreativeType === "pin") {
+        const title = document.getElementById("titleInput").value || "Default Title";
+        const subtitle = document.getElementById("subtitleInput").value;
+        const cta = document.getElementById("ctaInput").value || "Default CTA";
+        const titleColor = document.getElementById("titleColorInput").value || "#292a30";
+        const subtitleColor = document.getElementById("subtitleColorInput").value || "#292a30";
+        const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
+        const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
+        
+        const titleElem = doc.querySelector(".title");
+        if (titleElem) {
+          titleElem.textContent = title;
+          titleElem.style.color = titleColor;
         }
-      }
-      
-      const ctaElem = doc.querySelector(".button");
-      if (ctaElem) {
-        ctaElem.textContent = cta;
-        ctaElem.style.color = ctaTextColor;
-        ctaElem.style.backgroundColor = ctaBgColor;
+        
+        const subtitleElem = doc.querySelector(".sub-title");
+        const subtitleSpan = doc.querySelector(".sub-title span");
+        if (subtitleElem) {
+          if (subtitle.trim() === "") {
+            subtitleElem.style.display = "none";
+          } else {
+            subtitleElem.style.display = "block";
+            subtitleSpan.textContent = subtitle;
+            subtitleElem.style.color = subtitleColor;
+          }
+        }
+        
+        const ctaElem = doc.querySelector(".button");
+        if (ctaElem) {
+          ctaElem.textContent = cta;
+          ctaElem.style.color = ctaTextColor;
+          ctaElem.style.backgroundColor = ctaBgColor;
+        }
       }
     }
     
@@ -391,7 +488,7 @@
     });
     
     // -------------------------------
-    // Handle image file uploads (reset input after use)
+    // Handle image file uploads
     // -------------------------------
     function handleFileUpload(inputId, imgSelector) {
       const fileInput = document.getElementById(inputId);
@@ -411,12 +508,33 @@
         }
       });
     }
-    
+    // For Free Text and Pin, update logo and main image.
     handleFileUpload("logoFileInput", ".banner-logo img");
     handleFileUpload("imageFileInput", ".banner-image img");
     
+    // For Static interstitial, update the static image (using same file input)
+    function handleStaticUpload() {
+      const fileInput = document.getElementById("imageFileInput");
+      fileInput.addEventListener("change", function(event) {
+        const file = event.target.files[0];
+        if (file && currentCreativeType === "interstitial" && currentInterstitialSubType === "static") {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const doc = iframe.contentDocument;
+            const imgElem = doc.querySelector(".static-image");
+            if (imgElem) {
+              imgElem.src = e.target.result;
+            }
+            fileInput.value = "";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+    handleStaticUpload();
+    
     // -------------------------------
-    // Download screenshot using dom-to-image with enableCors option
+    // Download screenshot using dom-to-image
     // -------------------------------
     document.getElementById("downloadBtn").addEventListener("click", function() {
       const doc = iframe.contentDocument;
@@ -434,25 +552,31 @@
     });
     
     // -------------------------------
-    // Copy to Adops: copy input data to clipboard
+    // Copy to Adops: copy input data to clipboard (only for Free Text and Pin)
     // -------------------------------
     document.getElementById("copyBtn").addEventListener("click", function() {
-      const title = document.getElementById("titleInput").value || "Default Title";
-      const subtitle = document.getElementById("subtitleInput").value || "";
-      const cta = document.getElementById("ctaInput").value || "Default CTA";
-      const titleColor = document.getElementById("titleColorInput").value || "#292a30";
-      const subtitleColor = document.getElementById("subtitleColorInput").value || "#292a30";
-      const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
-      const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
-      
-      const text = 
-        "Title: " + title + "\n" +
-        "Subtitle: " + subtitle + "\n" +
-        "CTA: " + cta + "\n" +
-        "Title Color: " + titleColor + "\n" +
-        "Subtitle Color: " + subtitleColor + "\n" +
-        "CTA Text Color: " + ctaTextColor + "\n" +
-        "CTA Background Color: " + ctaBgColor;
+      let text = "";
+      if (currentCreativeType === "interstitial" && currentInterstitialSubType === "free" ||
+          currentCreativeType === "pin") {
+        const title = document.getElementById("titleInput").value || "Default Title";
+        const subtitle = document.getElementById("subtitleInput").value || "";
+        const cta = document.getElementById("ctaInput").value || "Default CTA";
+        const titleColor = document.getElementById("titleColorInput").value || "#292a30";
+        const subtitleColor = document.getElementById("subtitleColorInput").value || "#292a30";
+        const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
+        const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
+        
+        text =
+          "Title: " + title + "\n" +
+          "Subtitle: " + subtitle + "\n" +
+          "CTA: " + cta + "\n" +
+          "Title Color: " + titleColor + "\n" +
+          "Subtitle Color: " + subtitleColor + "\n" +
+          "CTA Text Color: " + ctaTextColor + "\n" +
+          "CTA Background Color: " + ctaBgColor;
+      } else {
+        text = "Static Image creative – no text fields.";
+      }
       
       navigator.clipboard.writeText(text).then(function() {
         alert("Copied to Adops!");
