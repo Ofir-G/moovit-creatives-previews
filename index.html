@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Creative Preview Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Load dom-to-image from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+  <style>
+    /* Parent page layout */
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+    .inputs {
+      width: 320px;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .inputs label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+    .inputs input[type="text"],
+    .inputs select {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    .inputs input[type="file"] {
+      width: 100%;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    .inputs button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+    }
+    .preview {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+    }
+    /* The iframe simulates a mobile device (390x844) */
+    iframe {
+      border: 1px solid #000;
+      width: 390px;
+      height: 844px;
+    }
+  </style>
+</head>
+<body>
+  <div class="inputs">
+    <label for="creativeType">Creative Type:</label>
+    <select id="creativeType">
+      <option value="interstitial">Interstitial</option>
+      <option value="pin">Pin on Map</option>
+    </select>
+    
+    <!-- File inputs (logo and image) at the top -->
+    <label for="logoFileInput">Logo:</label>
+    <input type="file" id="logoFileInput" accept="image/*">
+    
+    <label for="imageFileInput">Image:</label>
+    <input type="file" id="imageFileInput" accept="image/*">
+    
+    <label for="titleInput">Title:</label>
+    <input type="text" id="titleInput" placeholder="Enter title">
+    
+    <label for="subtitleInput">Subtitle (optional):</label>
+    <input type="text" id="subtitleInput" placeholder="Enter subtitle (optional)">
+    
+    <label for="ctaInput">CTA Text:</label>
+    <input type="text" id="ctaInput" placeholder="Enter CTA text">
+    
+    <label for="titleColorInput">Title Color:</label>
+    <input type="text" id="titleColorInput" placeholder="e.g., red or #ff0000">
+    
+    <label for="subtitleColorInput">Subtitle Color:</label>
+    <input type="text" id="subtitleColorInput" placeholder="e.g., red or #ff0000">
+    
+    <label for="ctaTextColorInput">CTA Text Color:</label>
+    <input type="text" id="ctaTextColorInput" placeholder="e.g., white or #fff">
+    
+    <label for="ctaBgColorInput">CTA Background Color:</label>
+    <input type="text" id="ctaBgColorInput" placeholder="e.g., #0F8F42">
+    
+    <button id="downloadBtn">Download Screenshot</button>
+    <button id="copyBtn">Copy to Adops</button>
+  </div>
+  
+  <div class="preview">
+    <iframe id="previewFrame"></iframe>
+  </div>
+  
+  <script>
+    // -------------------------------
+    // Template for the Interstitial creative
+    // -------------------------------
+    const interstitialTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=390, initial-scale=1">
+  <meta charset="UTF-8">
+  <style>
+    html, body { margin: 0; padding: 0; background: white; height: 844px; }
+    body {
+      position: relative;
+      padding: 57px 16px 56px 16px;
+      box-sizing: border-box;
+    }
+    .container {
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      position: relative;
+      padding: 12px;
+      border-radius: 8px;
+      background: white;
+      overflow: visible;
+    }
+    .banner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+    }
+    .banner-logo {
+      position: absolute;
+      width: 104px;
+      height: 104px;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 16px;
+      overflow: hidden;
+      z-index: 2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .banner-logo img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain;
+    }
+    .banner-image {
+      width: 100%;
+      height: 75%;
+      max-width: 320px;
+      max-height: 480px;
+      border-radius: 8px;
+      margin: auto;
+      margin-top: 73px;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .banner-image img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain;
+    }
+    .banner-content {
+      margin-top: 16px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    .banner-content .title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #292a30;
+      margin: 0;
+    }
+    .banner-content .sub-title {
+      font-size: 0.94rem;
+      color: #292a30;
+      margin-top: 8px;
+      display: none;
+    }
+    .banner-content .button {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.94rem;
+      font-weight: bold;
+      background-color: blue;
+      color: white;
+      width: 100%;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="banner">
+      <div class="banner-logo">
+        <img src="Moovit-app-logo.png" alt="Logo">
+      </div>
+      <div class="banner-image">
+        <img src="image.jpg" alt="Image">
+      </div>
+      <div class="banner-content">
+        <h1 class="title">Default Title</h1>
+        <h2 class="sub-title"><span></span></h2>
+        <div class="button">Default CTA</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+    
+    // -------------------------------
+    // Template for the Pin on Map creative
+    // -------------------------------
+    const pinOnMapTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=390, initial-scale=1">
+  <meta charset="UTF-8">
+  <style>
+    html, body { margin: 0; padding: 0; width: 390px; height: 844px; background: black; }
+    .base-wrapper { position: relative; width: 390px; height: 844px; }
+    .base-image { width: 390px; height: 844px; display: block; }
+    .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 390px;
+      background: white;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    .banner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+    }
+    .banner-logo {
+      width: 104px;
+      height: 104px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: -50px;
+      z-index: 2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .banner-logo img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain;
+    }
+    .banner-image {
+      width: 320px;
+      height: 240px;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 1;
+      margin-top: 10px;
+    }
+    .banner-image img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain;
+    }
+    .banner-content {
+      text-align: center;
+      margin-top: 10px;
+      font-family: Arial, sans-serif;
+      color: #292a30;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .banner-content .title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin: 0;
+    }
+    .banner-content .sub-title {
+      font-size: 0.94rem;
+      margin-top: 8px;
+      display: none;
+    }
+    .banner-content .button {
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.94rem;
+      font-weight: bold;
+      background-color: blue;
+      color: white;
+      width: 100%;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="base-wrapper">
+    <img class="base-image" src="pin template.png" alt="Background">
+    <div class="overlay">
+      <div class="banner">
+        <div class="banner-logo">
+          <img src="Moovit-app-logo.png" alt="Logo">
+        </div>
+        <div class="banner-image">
+          <img src="pin moovit placeholder.png" alt="Image">
+        </div>
+        <div class="banner-content">
+          <h1 class="title">Default Title</h1>
+          <h2 class="sub-title"><span></span></h2>
+          <div class="button">Default CTA</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+    
+    // -------------------------------
+    // Load the selected template into the iframe
+    // -------------------------------
+    let currentCreativeType = "interstitial";
+    const iframe = document.getElementById("previewFrame");
+    
+    function loadTemplate() {
+      currentCreativeType = document.getElementById("creativeType").value;
+      let template = currentCreativeType === "pin" ? pinOnMapTemplate : interstitialTemplate;
+      iframe.contentDocument.open();
+      iframe.contentDocument.write(template);
+      iframe.contentDocument.close();
+      setTimeout(updatePreview, 200);
+    }
+    
+    document.getElementById("creativeType").addEventListener("change", loadTemplate);
+    loadTemplate();
+    
+    // -------------------------------
+    // Update text and color in the preview
+    // -------------------------------
+    function updatePreview() {
+      const doc = iframe.contentDocument;
+      const title = document.getElementById("titleInput").value || "Default Title";
+      const subtitle = document.getElementById("subtitleInput").value;
+      const cta = document.getElementById("ctaInput").value || "Default CTA";
+      const titleColor = document.getElementById("titleColorInput").value || "#292a30";
+      const subtitleColor = document.getElementById("subtitleColorInput").value || "#292a30";
+      const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
+      const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
+      
+      const titleElem = doc.querySelector(".title");
+      if (titleElem) {
+        titleElem.textContent = title;
+        titleElem.style.color = titleColor;
+      }
+      
+      const subtitleElem = doc.querySelector(".sub-title");
+      const subtitleSpan = doc.querySelector(".sub-title span");
+      if (subtitleElem) {
+        if (subtitle.trim() === "") {
+          subtitleElem.style.display = "none";
+        } else {
+          subtitleElem.style.display = "block";
+          subtitleSpan.textContent = subtitle;
+          subtitleElem.style.color = subtitleColor;
+        }
+      }
+      
+      const ctaElem = doc.querySelector(".button");
+      if (ctaElem) {
+        ctaElem.textContent = cta;
+        ctaElem.style.color = ctaTextColor;
+        ctaElem.style.backgroundColor = ctaBgColor;
+      }
+    }
+    
+    ["titleInput", "subtitleInput", "ctaInput", "titleColorInput", "subtitleColorInput", "ctaTextColorInput", "ctaBgColorInput"].forEach(function(id) {
+      document.getElementById(id).addEventListener("input", updatePreview);
+    });
+    
+    // -------------------------------
+    // Handle image file uploads (reset input after use)
+    // -------------------------------
+    function handleFileUpload(inputId, imgSelector) {
+      const fileInput = document.getElementById(inputId);
+      fileInput.addEventListener("change", function(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const doc = iframe.contentDocument;
+            const imgElem = doc.querySelector(imgSelector);
+            if (imgElem) {
+              imgElem.src = e.target.result;
+            }
+            fileInput.value = "";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+    
+    handleFileUpload("logoFileInput", ".banner-logo img");
+    handleFileUpload("imageFileInput", ".banner-image img");
+    
+    // -------------------------------
+    // Download screenshot using dom-to-image with enableCors option
+    // -------------------------------
+    document.getElementById("downloadBtn").addEventListener("click", function() {
+      const doc = iframe.contentDocument;
+      domtoimage.toPng(doc.documentElement, { enableCors: true })
+        .then(function(dataUrl) {
+          const link = document.createElement("a");
+          link.download = "preview.png";
+          link.href = dataUrl;
+          link.click();
+        })
+        .catch(function(error) {
+          console.error('Screenshot error:', error);
+          alert("Screenshot capture failed.");
+        });
+    });
+    
+    // -------------------------------
+    // Copy to Adops: copy input data to clipboard
+    // -------------------------------
+    document.getElementById("copyBtn").addEventListener("click", function() {
+      const title = document.getElementById("titleInput").value || "Default Title";
+      const subtitle = document.getElementById("subtitleInput").value || "";
+      const cta = document.getElementById("ctaInput").value || "Default CTA";
+      const titleColor = document.getElementById("titleColorInput").value || "#292a30";
+      const subtitleColor = document.getElementById("subtitleColorInput").value || "#292a30";
+      const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
+      const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
+      
+      const text = 
+        "Title: " + title + "\n" +
+        "Subtitle: " + subtitle + "\n" +
+        "CTA: " + cta + "\n" +
+        "Title Color: " + titleColor + "\n" +
+        "Subtitle Color: " + subtitleColor + "\n" +
+        "CTA Text Color: " + ctaTextColor + "\n" +
+        "CTA Background Color: " + ctaBgColor;
+      
+      navigator.clipboard.writeText(text).then(function() {
+        alert("Copied to Adops!");
+      }).catch(function(err) {
+        alert("Copy failed: " + err);
+      });
+    });
+  </script>
+</body>
+</html>
