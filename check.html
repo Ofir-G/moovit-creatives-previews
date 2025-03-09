@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Base64 Image from JSON</title>
+</head>
+<body>
+    <h2>Loaded Image</h2>
+    <img id="displayImage" alt="Base64 Loaded Image">
+
+    <script>
+        // Load the JSON file
+        fetch('images.json')
+            .then(response => response.json())
+            .then(data => {
+                // Get the base64 image data
+                const base64Image = data.images.sticky_banner_arrow_white;
+                
+                // Set the image source
+                document.getElementById('displayImage').src = base64Image;
+            })
+            .catch(error => console.error('Error loading JSON:', error));
+    </script>
+</body>
+</html>
