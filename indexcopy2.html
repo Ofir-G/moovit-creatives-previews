@@ -211,6 +211,32 @@
   </div>
   
   <script>
+    // Load JSON file and store values in variables
+    fetch('images.json')
+        .then(response => response.json())
+        .then(data => {
+            // Extract the images object
+            const images = data.images;
+  
+            // Store each value into a variable
+            const interstitial_static_image = images.interstitial_static_image;
+            const interstitial_free_text_image = images.interstitial_free_text_image;
+            const logo = images.logo;
+            const pin_template = images.pin_template;
+            const pin_image = images.pin_image;
+            const sticky_banner_template = images.sticky_banner_template;
+            const sticky_banner_static_image = images.sticky_banner_static_image;
+            const sticky_banner_image = images.sticky_banner_image;
+            const sticky_banner_arrow_white = images.sticky_banner_arrow_white;
+            const sticky_banner_arrow_black = images.sticky_banner_arrow_black;
+            const mrec_template = images.mrec_template;
+            const mrec_static_image = images.mrec_static_image;
+            const mrec_free_text_image = images.mrec_free_text_image;
+        })
+        .catch(error => console.error("Error loading images.json:", error));
+  </script>
+
+  <script>
     // Define placeholder arrow icons (replace these with your actual base64 strings)
     const arrowWhiteIcon = "data:image/svg+xml;base64,PLACEHOLDER_WHITE";
     const arrowBlackIcon = "data:image/svg+xml;base64,PLACEHOLDER_BLACK";
@@ -1169,31 +1195,7 @@
     });
   </script>
 
-<script>
-  // Load JSON file and store values in variables
-  fetch('images.json')
-      .then(response => response.json())
-      .then(data => {
-          // Extract the images object
-          const images = data.images;
 
-          // Store each value into a variable
-          const interstitial_static_image = images.interstitial_static_image;
-          const interstitial_free_text_image = images.interstitial_free_text_image;
-          const logo = images.logo;
-          const pin_template = images.pin_template;
-          const pin_image = images.pin_image;
-          const sticky_banner_template = images.sticky_banner_template;
-          const sticky_banner_static_image = images.sticky_banner_static_image;
-          const sticky_banner_image = images.sticky_banner_image;
-          const sticky_banner_arrow_white = images.sticky_banner_arrow_white;
-          const sticky_banner_arrow_black = images.sticky_banner_arrow_black;
-          const mrec_template = images.mrec_template;
-          const mrec_static_image = images.mrec_static_image;
-          const mrec_free_text_image = images.mrec_free_text_image;
-      })
-      .catch(error => console.error("Error loading images.json:", error));
-</script>
 
 </body>
 </html>
