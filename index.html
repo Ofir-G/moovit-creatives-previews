@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Creative Preview Editor</title>
@@ -7,46 +8,111 @@
   <!-- Using dom-to-image for screenshot capture -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
   <style>
-    /* Parent layout */
+    /* Apply box-sizing only to the left panel and its children */
+    .inputs,
+    .inputs * {
+      box-sizing: border-box;
+    }
+
+    /* Overall layout and background */
     body {
       margin: 0;
       display: flex;
       height: 100vh;
-      font-family: Arial, sans-serif;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f5f5f7;
     }
+
+    /* Modern styled left-side panel with Moovit Orange accents */
     .inputs {
       width: 320px;
-      padding: 20px;
-      border-right: 1px solid #ccc;
-      box-sizing: border-box;
+      padding: 24px;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-right: 1px solid #e5e7eb;
       overflow-y: auto;
     }
+
     .inputs label {
       display: block;
-      margin-top: 12px;
-      font-weight: bold;
+      margin-top: 16px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
     }
+
     .inputs input[type="text"],
     .inputs select,
     .inputs input[type="file"] {
       width: 100%;
-      padding: 6px;
+      padding: 8px 12px;
       margin-top: 4px;
-      box-sizing: border-box;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: #374151;
+      background: #f9fafb;
+      transition: border-color 0.2s ease;
     }
+
+    .inputs input[type="text"]:focus,
+    .inputs select:focus,
+    .inputs input[type="file"]:focus {
+      outline: none;
+      border-color: #f57c00;
+      background: #ffffff;
+    }
+
     .inputs button {
-      margin-top: 20px;
+      margin-top: 24px;
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      background: #f57c00;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
     }
-    /* Conditional fields */
-    .sub-inputs { display: none; }
-    #stickyFreeVariantWrapper, #arrowColorWrapper, #mrecSubWrapper { display: none; }
-    #ctaFields { }
-    #logoField { }
-    #imageFieldWrapper { }
-    #bgColorWrapper { }
+
+    .inputs button:hover {
+      background: #e67000;
+    }
+
+    /* Ensure download and copy buttons get the correct font */
+    #downloadBtn,
+    #copyBtn {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Wrappers for conditional fields */
+    .sub-inputs {
+      display: none;
+    }
+
+    #stickyFreeVariantWrapper {
+      display: none;
+    }
+
+    #mrecSubWrapper {
+      display: none;
+    }
+
+    /* Arrow Color selection (only for Sticky Free Text Arrow variant) */
+    #arrowColorWrapper {
+      display: none;
+    }
+
+    #ctaFields {}
+
+    #logoField {}
+
+    #imageFieldWrapper {}
+
+    #bgColorWrapper {}
+
     .preview {
       flex-grow: 1;
       display: flex;
@@ -54,50 +120,17 @@
       justify-content: center;
       background: #f0f0f0;
     }
+
     iframe {
       border: 1px solid #000;
       width: 390px;
       height: 844px;
+      /* Using default box-sizing so borders don’t affect layout */
     }
   </style>
 </head>
+
 <body>
-  <!-- The JSON file (images.json) contains the base64 strings.
-       It has a structure like:
-       {
-         "images": {
-           "interstitial_static_image": "data:image/jpeg;base64,...",
-           "interstitial_free_text_image": "data:image/png;base64,...",
-           "logo": "data:image/png;base64,...",
-           "pin_template": "data:image/jpeg;base64,...",
-           "pin_image": "data:image/jpeg;base64,...",
-           "sticky_banner_template": "data:image/png;base64,...",
-           "sticky_banner_static_image": "data:image/jpeg;base64,...",
-           "sticky_banner_image": "data:image/jpeg;base64,...",
-           "sticky_banner_arrow_white": "data:image/png;base64,...",
-           "sticky_banner_arrow_black": "data:image/png;base64,...",
-           "mrec_template": "data:image/jpeg;base64,...",
-           "mrec_static_image": "data:image/jpeg;base64,...",
-           "mrec_free_text_image": "data:image/png;base64,..."
-         }
-       }
-  -->
-  <script>
-    // Load images.json and assign to a global variable "images"
-    let images = {};
-    fetch('images.json')
-      .then(response => response.json())
-      .then(data => {
-        images = data.images;
-        // Also set arrow icons for later use:
-        window.arrowWhiteIcon = images.sticky_banner_arrow_white;
-        window.arrowBlackIcon = images.sticky_banner_arrow_black;
-        // Now that images are loaded, load the template.
-        loadTemplate();
-      })
-      .catch(error => console.error("Error loading images.json:", error));
-  </script>
-  
   <div class="inputs">
     <!-- Main Creative Type -->
     <label for="creativeType">Creative Type:</label>
@@ -107,7 +140,7 @@
       <option value="sticky">Sticky Banner</option>
       <option value="mrec">MREC</option>
     </select>
-    
+
     <!-- Interstitial sub-type -->
     <div id="interstitialSubWrapper" class="sub-inputs">
       <label for="interstitialSubType">Interstitial Sub-Type:</label>
@@ -116,7 +149,7 @@
         <option value="free">Free Text</option>
       </select>
     </div>
-    
+
     <!-- Sticky Banner sub-type -->
     <div id="stickySubWrapper" class="sub-inputs">
       <label for="stickySubType">Sticky Banner Sub-Type:</label>
@@ -125,7 +158,7 @@
         <option value="free">Free Text</option>
       </select>
     </div>
-    
+
     <!-- Sticky Free Variant (only for Sticky Banner Free Text) -->
     <div id="stickyFreeVariantWrapper" class="sub-inputs">
       <label for="stickyFreeVariant">Sticky Free Variant:</label>
@@ -134,16 +167,16 @@
         <option value="button">Button</option>
       </select>
     </div>
-    
-    <!-- Arrow Color selection (only for Sticky Free Text Arrow variant) -->
+
+    <!-- New: Arrow Color (only for Sticky Free Text Arrow variant) -->
     <div id="arrowColorWrapper" class="sub-inputs">
       <label for="arrowColorSelect">Arrow Color:</label>
       <select id="arrowColorSelect">
-        <option value="white" selected>White</option>
-        <option value="black">Black</option>
+        <option value="white">White</option>
+        <option value="black" selected>Black</option>
       </select>
     </div>
-    
+
     <!-- MREC Sub-Type (only for MREC creative type) -->
     <div id="mrecSubWrapper" class="sub-inputs">
       <label for="mrecSubType">MREC Sub-Type:</label>
@@ -152,158 +185,215 @@
         <option value="free">Free Text</option>
       </select>
     </div>
-    
+
     <!-- Logo input – used in free text modes and for types that require a logo -->
     <div id="logoField">
       <label for="logoFileInput">Logo:</label>
       <input type="file" id="logoFileInput" accept="image/*">
     </div>
-    
+
     <!-- General Image input – used for the main image -->
     <div id="imageFieldWrapper">
       <label for="imageFileInput">Image:</label>
       <input type="file" id="imageFileInput" accept="image/*">
     </div>
-    
-    <!-- Text & CTA fields – for free text versions -->
+
+    <!-- Text & CTA fields – used in free text modes -->
     <div id="textFields">
       <label for="titleInput">Title:</label>
       <input type="text" id="titleInput" placeholder="Enter title">
-      
+
       <label for="subtitleInput">Subtitle:</label>
       <input type="text" id="subtitleInput" placeholder="Enter subtitle">
-      
+
+      <label>
+        <input type="checkbox" id="noSubtitleCheckbox">
+        No Subtitle
+      </label>
+
       <!-- CTA fields container -->
       <div id="ctaFields">
         <label for="ctaInput">CTA Text:</label>
         <input type="text" id="ctaInput" placeholder="Enter CTA text">
-        
+
         <label for="ctaTextColorInput">CTA Text Color:</label>
-        <input type="text" id="ctaTextColorInput" placeholder="e.g., white">
-        
+        <input type="text" id="ctaTextColorInput" placeholder="e.g., white or #ffffff">
+
         <label for="ctaBgColorInput">CTA Background Color:</label>
-        <input type="text" id="ctaBgColorInput" placeholder="e.g., blue">
+        <input type="text" id="ctaBgColorInput" placeholder="e.g., white or #ffffff">
       </div>
-      
+
       <label for="textColorInput">Text Color:</label>
-      <input type="text" id="textColorInput" placeholder="e.g., #292a30">
+      <input type="text" id="textColorInput" placeholder="e.g., white or #ffffff">
     </div>
-    
-    <!-- Background Color wrapper – hidden for static modes -->
+
+    <!-- Background Color wrapper – hidden for static modes and MREC static -->
     <div id="bgColorWrapper">
       <label for="bgColorInput">Background Color:</label>
-      <input type="text" id="bgColorInput" placeholder="e.g., white">
+      <input type="text" id="bgColorInput" placeholder="e.g., white or #ffffff">
     </div>
-    
+
     <button id="downloadBtn">Download Screenshot</button>
     <button id="copyBtn">Copy to Adops</button>
   </div>
-  
+
   <div class="preview">
     <iframe id="previewFrame"></iframe>
   </div>
-  
+
   <script>
-    // --- Update field visibility based on creative type and sub-types ---
-    const creativeTypeSelect = document.getElementById("creativeType");
-    const interstitialSubWrapper = document.getElementById("interstitialSubWrapper");
-    const interstitialSubTypeSelect = document.getElementById("interstitialSubType");
-    const stickySubWrapper = document.getElementById("stickySubWrapper");
-    const stickySubTypeSelect = document.getElementById("stickySubType");
-    const stickyFreeVariantWrapper = document.getElementById("stickyFreeVariantWrapper");
-    const stickyFreeVariantSelect = document.getElementById("stickyFreeVariant");
-    const arrowColorWrapper = document.getElementById("arrowColorWrapper");
-    const mrecSubWrapper = document.getElementById("mrecSubWrapper");
-    const mrecSubTypeSelect = document.getElementById("mrecSubType");
-    const textFields = document.getElementById("textFields");
-    const logoField = document.getElementById("logoField");
-    const bgColorWrapper = document.getElementById("bgColorWrapper");
-    const imageFieldWrapper = document.getElementById("imageFieldWrapper");
-    const ctaFields = document.getElementById("ctaFields");
-    
-    function updateVisibility() {
-      const type = creativeTypeSelect.value;
-      if (type === "interstitial") {
-        interstitialSubWrapper.style.display = "block";
-        stickySubWrapper.style.display = "none";
-        mrecSubWrapper.style.display = "none";
-        stickyFreeVariantWrapper.style.display = "none";
-        arrowColorWrapper.style.display = "none";
-        if (interstitialSubTypeSelect.value === "static") {
-          textFields.style.display = "none";
-          logoField.style.display = "none";
-          bgColorWrapper.style.display = "none";
-          imageFieldWrapper.style.display = "block";
-        } else { 
-          textFields.style.display = "block";
-          logoField.style.display = "block";
-          bgColorWrapper.style.display = "block";
-          imageFieldWrapper.style.display = "block";
-          ctaFields.style.display = "block";
+
+    // Declare variables in the higher scope
+    let interstitial_static_image;
+    let interstitial_free_text_image;
+    let logoImage;
+    let pin_template;
+    let pin_image;
+    let sticky_banner_template;
+    let sticky_banner_static_image;
+    let sticky_banner_image;
+    let sticky_banner_arrow_white;
+    let sticky_banner_arrow_black;
+    let mrec_template;
+    let mrec_static_image;
+    let mrec_free_text_image;
+    let close_button;
+    let arrowBlackIcon;
+    let arrowWhiteIcon;
+
+    // Load JSON file
+    fetch('images.json')
+      .then(response => response.json())
+      .then(data => {
+        // Save each image in a variable
+        let images = data.images;
+
+        interstitial_static_image = images.interstitial_static_image;
+        interstitial_free_text_image = images.interstitial_free_text_image;
+        logoImage = images.logo;
+        pin_template = images.pin_template;
+        pin_image = images.pin_image;
+        sticky_banner_template = images.sticky_banner_template;
+        sticky_banner_static_image = images.sticky_banner_static_image;
+        sticky_banner_image = images.sticky_banner_image;
+        sticky_banner_arrow_white = images.sticky_banner_arrow_white;
+        sticky_banner_arrow_black = images.sticky_banner_arrow_black;
+        mrec_template = images.mrec_template;
+        mrec_static_image = images.mrec_static_image;
+        mrec_free_text_image = images.mrec_free_text_image;
+        close_button = images.close_button;
+        arrowBlackIcon = images.arrow_black;
+        arrowWhiteIcon = images.arrow_white;
+
+        // --- Update field visibility based on creative type and sub-types ---
+        const creativeTypeSelect = document.getElementById("creativeType");
+        const interstitialSubWrapper = document.getElementById("interstitialSubWrapper");
+        const interstitialSubTypeSelect = document.getElementById("interstitialSubType");
+        const stickySubWrapper = document.getElementById("stickySubWrapper");
+        const stickySubTypeSelect = document.getElementById("stickySubType");
+        const stickyFreeVariantWrapper = document.getElementById("stickyFreeVariantWrapper");
+        const stickyFreeVariantSelect = document.getElementById("stickyFreeVariant");
+        const arrowColorWrapper = document.getElementById("arrowColorWrapper");
+        const mrecSubWrapper = document.getElementById("mrecSubWrapper");
+        const mrecSubTypeSelect = document.getElementById("mrecSubType");
+        const textFields = document.getElementById("textFields");
+        const logoField = document.getElementById("logoField");
+        const bgColorWrapper = document.getElementById("bgColorWrapper");
+        const imageFieldWrapper = document.getElementById("imageFieldWrapper");
+        const ctaFields = document.getElementById("ctaFields");
+
+        function updateVisibility() {
+          const type = creativeTypeSelect.value;
+          if (type === "interstitial") {
+            interstitialSubWrapper.style.display = "block";
+            stickySubWrapper.style.display = "none";
+            mrecSubWrapper.style.display = "none";
+            stickyFreeVariantWrapper.style.display = "none";
+            arrowColorWrapper.style.display = "none";
+            if (interstitialSubTypeSelect.value === "static") {
+              textFields.style.display = "none";
+              logoField.style.display = "none";
+              bgColorWrapper.style.display = "none";
+              imageFieldWrapper.style.display = "block";
+            } else { // free
+              textFields.style.display = "block";
+              logoField.style.display = "block";
+              bgColorWrapper.style.display = "block";
+              imageFieldWrapper.style.display = "block";
+              ctaFields.style.display = "block";
+            }
+          } else if (type === "sticky") {
+            stickySubWrapper.style.display = "block";
+            interstitialSubWrapper.style.display = "none";
+            mrecSubWrapper.style.display = "none";
+            if (stickySubTypeSelect.value === "static") {
+              textFields.style.display = "none";
+              logoField.style.display = "none";
+              bgColorWrapper.style.display = "none";
+              imageFieldWrapper.style.display = "block";
+              stickyFreeVariantWrapper.style.display = "none";
+              arrowColorWrapper.style.display = "none";
+            } else { // free text for sticky banner
+              stickyFreeVariantWrapper.style.display = "block";
+              if (stickyFreeVariantSelect.value === "arrow") {
+                textFields.style.display = "block";
+                logoField.style.display = "block";
+                bgColorWrapper.style.display = "block";
+                imageFieldWrapper.style.display = "none";
+                ctaFields.style.display = "none";
+                arrowColorWrapper.style.display = "block";
+              } else { // button variant
+                textFields.style.display = "block";
+                logoField.style.display = "block";
+                bgColorWrapper.style.display = "block";
+                imageFieldWrapper.style.display = "none";
+                ctaFields.style.display = "block";
+                arrowColorWrapper.style.display = "none";
+              }
+            }
+          } else if (type === "pin") {
+            interstitialSubWrapper.style.display = "none";
+            stickySubWrapper.style.display = "none";
+            mrecSubWrapper.style.display = "none";
+            stickyFreeVariantWrapper.style.display = "none";
+            arrowColorWrapper.style.display = "none";
+            textFields.style.display = "block";
+            logoField.style.display = "block";
+            bgColorWrapper.style.display = "none";
+            imageFieldWrapper.style.display = "block";
+          } else if (type === "mrec") {
+            mrecSubWrapper.style.display = "block";
+            interstitialSubWrapper.style.display = "none";
+            stickySubWrapper.style.display = "none";
+            stickyFreeVariantWrapper.style.display = "none";
+            arrowColorWrapper.style.display = "none";
+            if (mrecSubTypeSelect.value === "static") {
+              textFields.style.display = "none";
+              bgColorWrapper.style.display = "none";
+              imageFieldWrapper.style.display = "block";
+              logoField.style.display = "none";
+            } else { // free text
+              textFields.style.display = "block";
+              bgColorWrapper.style.display = "block";
+              imageFieldWrapper.style.display = "block";  // used for overlay image
+              logoField.style.display = "none";
+            }
+          }
         }
-      } else if (type === "sticky") {
-        stickySubWrapper.style.display = "block";
-        interstitialSubWrapper.style.display = "none";
-        mrecSubWrapper.style.display = "none";
-        if (stickySubTypeSelect.value === "static") {
-          textFields.style.display = "none";
-          logoField.style.display = "none";
-          bgColorWrapper.style.display = "none";
-          imageFieldWrapper.style.display = "block";
-          stickyFreeVariantWrapper.style.display = "none";
-          arrowColorWrapper.style.display = "none";
-        } else {
-          stickyFreeVariantWrapper.style.display = "block";
-          textFields.style.display = "block";
-          logoField.style.display = "block";
-          bgColorWrapper.style.display = "block";
-          imageFieldWrapper.style.display = "none";
-          ctaFields.style.display = stickyFreeVariantSelect.value === "arrow" ? "none" : "block";
-          arrowColorWrapper.style.display = stickyFreeVariantSelect.value === "arrow" ? "block" : "none";
-        }
-      } else if (type === "pin") {
-        interstitialSubWrapper.style.display = "none";
-        stickySubWrapper.style.display = "none";
-        mrecSubWrapper.style.display = "none";
-        stickyFreeVariantWrapper.style.display = "none";
-        arrowColorWrapper.style.display = "none";
-        textFields.style.display = "block";
-        logoField.style.display = "block";
-        bgColorWrapper.style.display = "none";
-        imageFieldWrapper.style.display = "block";
-      } else if (type === "mrec") {
-        mrecSubWrapper.style.display = "block";
-        interstitialSubWrapper.style.display = "none";
-        stickySubWrapper.style.display = "none";
-        stickyFreeVariantWrapper.style.display = "none";
-        arrowColorWrapper.style.display = "none";
-        if (mrecSubTypeSelect.value === "static") {
-          textFields.style.display = "none";
-          bgColorWrapper.style.display = "none";
-          imageFieldWrapper.style.display = "block";
-          logoField.style.display = "none";
-        } else {
-          textFields.style.display = "block";
-          bgColorWrapper.style.display = "block";
-          imageFieldWrapper.style.display = "block";
-          logoField.style.display = "none";
-        }
-      }
-    }
-    creativeTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    interstitialSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    stickySubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    stickyFreeVariantSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    mrecSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    document.getElementById("arrowColorSelect").addEventListener("change", updatePreview);
-    updateVisibility();
-    
-    // --- Templates ---
-    // For brevity, only the templates that use the images from the JSON file are shown below.
-    // Replace the ellipses with your full HTML templates if needed.
-    
-    // Interstitial Free Text Template
-    const freeTextTemplate = `
+        creativeTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        interstitialSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        stickySubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        stickyFreeVariantSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        mrecSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        document.getElementById("arrowColorSelect").addEventListener("change", updatePreview);
+        document.getElementById("noSubtitleCheckbox").addEventListener("change", updatePreview);
+        updateVisibility();
+
+        // -------------------------------
+        // Templates
+        // -------------------------------
+        // Interstitial Free Text Template (unchanged)
+        const freeTextTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -313,7 +403,7 @@
     html, body { margin:0; padding:0; background: var(--bg-color, white); height:844px; }
     body { position: relative; padding:57px 16px 56px 16px; box-sizing:border-box; }
     .container { width:calc(100% - 24px); height:calc(100% - 24px); position:relative; padding:12px; border-radius:8px; background: var(--bg-color, white); overflow:visible; }
-    .close-button { position: fixed; top:36px; left:360px; width:32px; height:32px; background-image: url('${closeButtonSVG}'); background-size:cover; background-repeat:no-repeat; cursor:pointer; z-index:100; }
+    .close-button { position: fixed; top:25px; right:15px; width:32px; height:32px; background-image: url('${close_button}');  background-repeat:no-repeat; cursor:pointer; z-index:100; }
     .banner { position: relative; width:100%; height:100%; display:flex; flex-direction:column; text-decoration:none; }
     .banner-logo { position: absolute; width:104px; height:104px; top:10px; left:50%; transform:translateX(-50%); border-radius:16px; overflow:hidden; z-index:2; box-shadow:0 2px 6px rgba(0,0,0,0.3); }
     .banner-logo img { width:100%; height:100%; object-fit:contain; }
@@ -321,7 +411,7 @@
     .banner-image img { width:100%; height:100%; object-fit:contain; }
     .banner-content { margin-top:16px; text-align:center; font-family:Arial, sans-serif; }
     .banner-content .title { font-size:1.3rem; font-weight:bold; color: var(--text-color, #292a30); margin:0; }
-    .banner-content .sub-title { font-size:0.94rem; font-weight:normal; color: var(--text-color, #292a30); margin-top:8px; display:block; }
+    .banner-content .sub-title { font-size:0.94rem; color: var(--text-color, #292a30); margin-top:8px; display:block; font-weight: normal; }
     .banner-content .button { margin-top:24px; padding:14px; border-radius:8px; font-size:0.94rem; font-weight:bold; background-color: var(--cta-bg, blue); color: var(--cta-text, white); width:100%; box-sizing:border-box; }
   </style>
 </head>
@@ -330,10 +420,10 @@
   <div class="container">
     <div class="banner">
       <div class="banner-logo">
-        <img src="${images.logo}" alt="Logo">
+        <img src="${logoImage}" alt="Logo">
       </div>
       <div class="banner-image">
-        <img src="${images.interstitial_free_text_image}" alt="Image">
+        <img src="${interstitial_free_text_image}" alt="Image">
       </div>
       <div class="banner-content">
         <h1 class="title">Default Title</h1>
@@ -345,9 +435,9 @@
 </body>
 </html>
     `;
-    
-    // Interstitial Static Template
-    const staticTemplate = `
+
+        // Interstitial Static Template (unchanged)
+        const staticTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -356,21 +446,21 @@
   <style>
     html, body { margin:0; padding:0; background: var(--bg-color, white); width:390px; height:844px; }
     .container { position: relative; width:390px; height:844px; overflow:hidden; background: var(--bg-color, white); }
-    .close-button { position: fixed; top:36px; left:360px; width:32px; height:32px; background-image: url('${closeButtonSVG}'); background-size:cover; background-repeat:no-repeat; cursor:pointer; z-index:100; }
-    .static-image { width:100%; height:100%; object-fit:cover; }
+    .close-button { position: fixed; top:35px; right:15px; width:32px; height:32px; background-image: url('${close_button}');  background-repeat:no-repeat; cursor:pointer; z-index:100; }
+    .static-image { width:100%; height:100%;}
   </style>
 </head>
 <body>
   <div class="close-button"></div>
   <div class="container">
-    <img class="static-image" src="${images.interstitial_static_image}" alt="Static Image">
+    <img class="static-image" src="${interstitial_static_image}" alt="Static Image">
   </div>
 </body>
 </html>
     `;
-    
-    // Pin on Map Template
-    const pinOnMapTemplate = `
+
+        // Pin on Map Template (unchanged)
+        const pinOnMapTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -388,20 +478,20 @@
     .banner-image img { width:100%; height:100%; object-fit:contain; }
     .banner-content { text-align:center; margin-top:10px; font-family:Arial, sans-serif; color:#292a30; width:100%; box-sizing:border-box; }
     .banner-content .title { font-size:1.3rem; font-weight:bold; margin:0; }
-    .banner-content .sub-title { font-size:0.94rem; font-weight:normal; margin-top:8px; display:block; }
+    .banner-content .sub-title { font-size:0.94rem; margin-top:8px; display:block; font-weight: normal; }
     .banner-content .button { margin-top:24px; padding:14px; border-radius:8px; font-size:0.94rem; font-weight:bold; background-color:blue; color:white; width:100%; box-sizing:border-box; }
   </style>
 </head>
 <body>
   <div class="base-wrapper">
-    <img class="base-image" src="${images.pin_template}" alt="Background">
+    <img class="base-image" src="${pin_template}" alt="Background">
     <div class="overlay">
       <div class="banner">
         <div class="banner-logo">
-          <img src="${images.logo}" alt="Logo">
+          <img src="${logoImage}" alt="Logo">
         </div>
         <div class="banner-image">
-          <img src="${images.pin_image}" alt="Image">
+          <img src="${pin_image}" alt="Image">
         </div>
         <div class="banner-content">
           <h1 class="title">Default Title</h1>
@@ -414,9 +504,9 @@
 </body>
 </html>
     `;
-    
-    // Sticky Banner Static Template
-    const stickyStaticTemplate = `
+
+        // Sticky Banner Static Template (unchanged)
+        const stickyStaticTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -461,17 +551,122 @@
 </head>
 <body>
   <div class="container">
-    <img class="base-image" src="${images.sticky_banner_template}" alt="Placement Background">
+    <img class="base-image" src="${sticky_banner_template}" alt="Placement Background">
     <div class="sticky-overlay">
-      <img class="sticky-image" src="${images.sticky_banner_static_image}" alt="Sticky Banner">
+      <img class="sticky-image" src="${sticky_banner_static_image}" alt="Sticky Banner">
     </div>
   </div>
 </body>
 </html>
     `;
-    
-    // Sticky Banner Free Text – Arrow variant (updated spacing, square logo with no shadow)
-    const stickyFreeTemplate = `
+
+        // Sticky Banner Free Text – Arrow variant (updated)
+        const stickyFreeTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=390, initial-scale=1">
+  <meta charset="UTF-8">
+  <style>
+    html, body { margin:0; padding:0; background: var(--bg-color, white); width:390px; height:844px; }
+    .container { position: relative; width:390px; height:844px; overflow:hidden; background: var(--bg-color, white); }
+    .base-image { width:100%; height:844px; object-fit:cover; }
+    .sticky-overlay {
+      position: absolute;
+      left:0; top:695px;
+      width:390px; height:61px;
+      background: var(--overlay-bg, black);
+      padding: 0 4pt 0 8pt;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    /* Use same spacing as button version */
+    .banner-icon {
+      width:34px;
+      display: flex;
+      margin: auto 10px;
+    }
+    .banner-icon .img-container {
+      align-self: center;
+      width:34px;
+      height:34px;
+      display: inline-block;
+      position: relative;
+      border-radius: 0;
+      overflow:hidden;
+      box-shadow: none;
+    }
+    .banner-icon .img-container img {
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+    .banner-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: left;
+      padding-left: 8px;
+    }
+    .banner-content .title {
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 0.82rem;
+      color: var(--text-color, white);
+      margin: 0;
+    }
+    .banner-content .sub-title {
+      font-family: Arial, sans-serif;
+      font-weight: normal;
+      font-size: 0.71rem;
+      color: var(--text-color, white);
+      margin: 2px 0 0 0;
+    }
+    .img-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width:24px;
+      height:24px;
+    }
+    .arrow-btn {
+      width:24px;
+      height:24px;
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img class="base-image" src="${sticky_banner_template}" alt="Placement Background">
+    <div class="sticky-overlay">
+      <div class="banner-icon">
+        <div class="img-container">
+          <img src="${logoImage}" alt="Logo">
+        </div>
+      </div>
+      <div class="banner-content">
+        <h1 class="title">Default Title</h1>
+        <h2 class="sub-title"><span>Default Subtitle</span></h2>
+      </div>
+      <div class="img-container">
+        <div class="arrow-btn">
+          <img src="${arrowBlackIcon}" alt="Arrow">
+          </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+        // Sticky Banner Free Text – Button variant (updated)
+        const stickyButtonTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -534,49 +729,45 @@
       color: var(--text-color, white);
       margin: 2px 0 0 0;
     }
-    .img-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width:24px;
-      height:24px;
-    }
-    .arrow-btn {
-      width:24px;
-      height:24px;
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
+    .cta {
+      height: 24px;
+      padding: 4px 7.5px;
+      border-radius: 4px;
+      margin: auto 10px;
+      border: none;
+      line-height: 1.23;
+      letter-spacing: 0.25px;
+      max-width: 96px;
+      overflow: hidden;
+      background-color: var(--cta-bg, #F55300);
+      color: var(--cta-text, #fff);
+      font-family: Arial, sans-serif;
+      font-size: 0.8235294118rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img class="base-image" src="${images.sticky_banner_template}" alt="Placement Background">
+    <img class="base-image" src="bannertemplate.png" alt="Placement Background">
     <div class="sticky-overlay">
       <div class="banner-icon">
         <div class="img-container">
-          <img src="${images.logo}" alt="Logo">
+          <img src="${logoImage}" alt="Logo">
         </div>
       </div>
       <div class="banner-content">
         <h1 class="title">Default Title</h1>
         <h2 class="sub-title"><span>Default Subtitle</span></h2>
       </div>
-      <div class="img-container">
-        <div class="arrow-btn"></div>
-      </div>
+      <button class="cta">Default CTA</button>
     </div>
   </div>
 </body>
 </html>
     `;
-    
-    // Sticky Banner Free Text – Button variant template (not updated in this step; represented as ellipsis)
-    const stickyButtonTemplate = `...`;
-    
-    // MREC Static Template
-    const mrecTemplate = `
+
+        // MREC Static Template (unchanged)
+        const mrecTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -617,15 +808,15 @@
 </head>
 <body>
   <div class="container">
-    <img class="bg" src="${images.mrec_template}" alt="MREC Background">
-    <img class="mrec-overlay" src="${images.mrec_static_image}" alt="Overlay Image">
+    <img class="bg" src="${mrec_template}" alt="MREC Background">
+    <img class="mrec-overlay" src="${mrec_static_image}" alt="Overlay Image">
   </div>
 </body>
 </html>
     `;
-    
-    // MREC Free Text Template
-    const mrecFreeTemplate = `
+
+        // MREC Free Text Template – updated per new requirements
+        const mrecFreeTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -643,11 +834,13 @@
       height: 844px;
       overflow: hidden;
     }
+    /* Background image uses mrec.png */
     .bg {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+    /* Overlay region fixed at (45,374) with size 300x250 */
     .mrec-overlay {
       position: absolute;
       left: 45px;
@@ -659,17 +852,19 @@
       flex-direction: column;
       box-sizing: border-box;
     }
+    /* Top area: image input placeholder; must be 300x130 */
     .mrec-overlay .overlay-image {
       width: 300px;
       height: 130px;
       object-fit: contain;
       display: block;
     }
+    /* Bottom area: content occupies remaining 120px */
     .mrec-content {
       height: 120px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: space-evenly;
       align-items: center;
       padding: 5px;
       box-sizing: border-box;
@@ -707,9 +902,9 @@
 </head>
 <body>
   <div class="container">
-    <img class="bg" src="${images.mrec_template}" alt="MREC Background">
+    <img class="bg" src="${mrec_template}" alt="MREC Background">
     <div class="mrec-overlay">
-      <img class="overlay-image" src="${images.mrec_free_text_image}" alt="Overlay Image">
+      <img class="overlay-image" src="${mrec_free_text_image}" alt="Overlay Image">
       <div class="mrec-content">
          <h1 class="title">Default Title</h1>
          <h2 class="sub-title"><span>Default Subtitle</span></h2>
@@ -720,327 +915,381 @@
 </body>
 </html>
     `;
-    
-    // -------------------------------
-    // Overall loading logic
-    // -------------------------------
-    let currentCreativeType = "interstitial";
-    let currentInterstitialSubType = "static";
-    let currentStickySubType = "static";
-    let currentStickyFreeVariant = "arrow";
-    let currentMrecSubType = "static";
-    function loadTemplate() {
-      currentCreativeType = document.getElementById("creativeType").value;
-      let template = "";
-      if (currentCreativeType === "interstitial") {
-        currentInterstitialSubType = document.getElementById("interstitialSubType").value;
-        if (currentInterstitialSubType === "static") { 
-          template = staticTemplate; 
-        } else { 
-          template = freeTextTemplate; 
+
+        // -------------------------------
+        // Overall loading logic
+        // -------------------------------
+        let currentCreativeType = "interstitial";
+        let currentInterstitialSubType = "static";
+        let currentStickySubType = "static";
+        let currentStickyFreeVariant = "arrow";
+        let currentMrecSubType = "static";
+        const iframe = document.getElementById("previewFrame");
+        function loadTemplate() {
+          currentCreativeType = document.getElementById("creativeType").value;
+          let template = "";
+          if (currentCreativeType === "interstitial") {
+            currentInterstitialSubType = document.getElementById("interstitialSubType").value;
+            if (currentInterstitialSubType === "static") {
+              template = staticTemplate;
+            } else {
+              template = freeTextTemplate;
+            }
+          } else if (currentCreativeType === "pin") {
+            template = pinOnMapTemplate;
+          } else if (currentCreativeType === "sticky") {
+            currentStickySubType = document.getElementById("stickySubType").value;
+            if (currentStickySubType === "static") {
+              template = stickyStaticTemplate;
+            } else {
+              currentStickyFreeVariant = document.getElementById("stickyFreeVariant").value;
+              if (currentStickyFreeVariant === "arrow") {
+                template = stickyFreeTemplate;
+              } else {
+                template = stickyButtonTemplate;
+              }
+            }
+          } else if (currentCreativeType === "mrec") {
+            currentMrecSubType = document.getElementById("mrecSubType").value;
+            if (currentMrecSubType === "static") {
+              template = mrecTemplate;
+            } else {
+              template = mrecFreeTemplate;
+            }
+          }
+          iframe.contentDocument.open();
+          iframe.contentDocument.write(template);
+          iframe.contentDocument.close();
+          setTimeout(updateBackground, 200);
+          setTimeout(updatePreview, 200);
         }
-      } else if (currentCreativeType === "pin") {
-        template = pinOnMapTemplate;
-      } else if (currentCreativeType === "sticky") {
-        currentStickySubType = document.getElementById("stickySubType").value;
-        if (currentStickySubType === "static") { 
-          template = stickyStaticTemplate; 
-        } else {
-          currentStickyFreeVariant = document.getElementById("stickyFreeVariant").value;
-          if (currentStickyFreeVariant === "arrow") {
-            template = stickyFreeTemplate;
+        creativeTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        interstitialSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        stickySubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        stickyFreeVariantSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        mrecSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
+        loadTemplate();
+
+        // -------------------------------
+        // Update background color
+        // -------------------------------
+        function updateBackground() {
+          const bgColor = document.getElementById("bgColorInput").value || "white";
+          const doc = iframe.contentDocument;
+          if (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free") {
+            let overlay = doc.querySelector(".mrec-overlay");
+            if (overlay) { overlay.style.backgroundColor = bgColor; }
           } else {
-            template = stickyButtonTemplate;
+            doc.body.style.backgroundColor = bgColor;
+            let container = doc.querySelector(".container");
+            if (container) { container.style.backgroundColor = bgColor; }
+            let overlay = doc.querySelector(".sticky-overlay");
+            if (overlay) { overlay.style.backgroundColor = bgColor; }
           }
         }
-      } else if (currentCreativeType === "mrec") {
-        currentMrecSubType = document.getElementById("mrecSubType").value;
-        if (currentMrecSubType === "static") {
-          template = mrecTemplate;
-        } else {
-          template = mrecFreeTemplate;
-        }
-      }
-      const iframe = document.getElementById("previewFrame");
-      iframe.contentDocument.open();
-      iframe.contentDocument.write(template);
-      iframe.contentDocument.close();
-      setTimeout(updateBackground, 200);
-      setTimeout(updatePreview, 200);
-    }
-    creativeTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    interstitialSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    stickySubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    stickyFreeVariantSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    mrecSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
-    
-    // -------------------------------
-    // Update background color
-    // -------------------------------
-    function updateBackground() {
-      const bgColor = document.getElementById("bgColorInput").value || "white";
-      const doc = document.getElementById("previewFrame").contentDocument;
-      if (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free") {
-        let overlay = doc.querySelector(".mrec-overlay");
-        if (overlay) { overlay.style.backgroundColor = bgColor; }
+        document.getElementById("bgColorInput").addEventListener("input", updateBackground);
+
+        // -------------------------------
+        // Update text and colors
+        // -------------------------------
+        function updatePreview() {
+          const doc = iframe.contentDocument;
+          if ((currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") ||
+            currentCreativeType === "pin" ||
+            (currentCreativeType === "sticky" && stickySubTypeSelect.value === "free") ||
+            (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free")) {
+            const title = document.getElementById("titleInput").value || "Default Title";
+            const subtitle = document.getElementById("subtitleInput").value || "Default Subtitle";
+            const cta = document.getElementById("ctaInput").value || "Default CTA";
+            const textColor = document.getElementById("textColorInput").value || "#292a30";
+            const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
+            const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
+            const titleElem = doc.querySelector(".title");
+            if (titleElem) { titleElem.textContent = title; titleElem.style.color = textColor; }
+            const subtitleElem = doc.querySelector(".sub-title");
+            const subtitleSpan = doc.querySelector(".sub-title span");
+            if (subtitleElem) {
+              subtitleElem.style.display = "block";
+              subtitleSpan.textContent = subtitle || "Default Subtitle";
+              subtitleElem.style.color = textColor;
+            }
+            const ctaElem = doc.querySelector(".cta") || doc.querySelector(".button");
+            if (ctaElem) {
+              ctaElem.textContent = cta;
+              ctaElem.style.color = ctaTextColor;
+              ctaElem.style.backgroundColor = ctaBgColor;
+            }
+          }
+
+
+  // Update subtitle only if the creative type is one where subtitle is optional.
+  if ((currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") ||
+      currentCreativeType === "pin" ||
+      (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free")) {
+    const subtitleElem = doc.querySelector(".sub-title");
+    const subtitleSpan = doc.querySelector(".sub-title span");
+    const noSubtitle = document.getElementById("noSubtitleCheckbox").checked;
+    if (subtitleElem) {
+      if (noSubtitle) {
+        subtitleElem.style.display = "none";
       } else {
-        doc.body.style.backgroundColor = bgColor;
-        let container = doc.querySelector(".container");
-        if (container) { container.style.backgroundColor = bgColor; }
-        let overlay = doc.querySelector(".sticky-overlay");
-        if (overlay) { overlay.style.backgroundColor = bgColor; }
+        subtitleElem.style.display = "block";
+        // If user leaves it empty, you could either show a default text or just empty
+        subtitleSpan.textContent = document.getElementById("subtitleInput").value || "Default Subtitle";
+        subtitleElem.style.color = document.getElementById("textColorInput").value || "#292a30";
       }
     }
-    document.getElementById("bgColorInput").addEventListener("input", updateBackground);
-    
-    // -------------------------------
-    // Update text and colors
-    // -------------------------------
-    function updatePreview() {
-      const doc = document.getElementById("previewFrame").contentDocument;
-      if ((currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") ||
-          currentCreativeType === "pin" ||
-          (currentCreativeType === "sticky" && stickySubTypeSelect.value === "free") ||
-          (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free")) {
-        const title = document.getElementById("titleInput").value || "Default Title";
-        const subtitle = document.getElementById("subtitleInput").value || "Default Subtitle";
-        const cta = document.getElementById("ctaInput").value || "Default CTA";
-        const textColor = document.getElementById("textColorInput").value || "#292a30";
-        const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
-        const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
-        const titleElem = doc.querySelector(".title");
-        if (titleElem) { titleElem.textContent = title; titleElem.style.color = textColor; }
-        const subtitleElem = doc.querySelector(".sub-title");
-        const subtitleSpan = doc.querySelector(".sub-title span");
-        if (subtitleElem) {
-          subtitleElem.style.display = "block";
-          subtitleSpan.textContent = subtitle;
-          subtitleElem.style.color = textColor;
-        }
-        const ctaElem = doc.querySelector(".cta") || doc.querySelector(".button");
-        if (ctaElem) { 
-          ctaElem.textContent = cta; 
-          ctaElem.style.color = ctaTextColor; 
-          ctaElem.style.backgroundColor = ctaBgColor; 
-        }
-      }
-      if (currentCreativeType === "sticky" && stickySubTypeSelect.value === "free" && stickyFreeVariantSelect.value === "arrow") {
-        const arrowColor = document.getElementById("arrowColorSelect").value;
-        const arrowElem = doc.querySelector(".arrow-btn");
-        if (arrowElem) {
-          if (arrowColor === "white") {
-            arrowElem.style.backgroundImage = `url("${arrowWhiteIcon}")`;
-          } else {
-            arrowElem.style.backgroundImage = `url("${arrowBlackIcon}")`;
+  } else {
+    // For creative types where subtitle is always required, update as normal.
+    const subtitleElem = doc.querySelector(".sub-title");
+    if (subtitleElem) {
+      subtitleElem.style.display = "block";
+      subtitleElem.querySelector("span").textContent = document.getElementById("subtitleInput").value || "Default Subtitle";
+      subtitleElem.style.color = document.getElementById("textColorInput").value || "#292a30";
+    }
+  }
+
+        // -------------------------------
+        // Handle arrow color change
+        // -------------------------------
+
+        if (
+          currentCreativeType === "sticky" &&
+          stickySubTypeSelect.value === "free" &&
+          stickyFreeVariantSelect.value === "arrow"
+        ) {
+          const arrowColor = document.getElementById("arrowColorSelect").value;
+          const arrowElem = iframe.contentDocument.querySelector(".arrow-btn img");
+          if (arrowElem) {
+            arrowElem.src = arrowColor === "white" ? arrowWhiteIcon : arrowBlackIcon;
           }
         }
-      }
-    }
-    ["titleInput", "subtitleInput", "ctaInput", "textColorInput", "ctaTextColorInput", "ctaBgColorInput"].forEach(id => {
-      document.getElementById(id).addEventListener("input", updatePreview);
-    });
-    
-    // -------------------------------
-    // Handle image file uploads with dimension checks
-    // -------------------------------
-    function updateLogoUpload() {
-      const fileInput = document.getElementById("logoFileInput");
-      fileInput.addEventListener("change", function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const doc = document.getElementById("previewFrame").contentDocument;
-          if (currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") {
-            let tempImg = new Image();
-            tempImg.onload = function() {
-              if (tempImg.naturalWidth === tempImg.naturalHeight && tempImg.naturalWidth >= 100) {
+
+        }
+        ["titleInput", "subtitleInput", "ctaInput", "textColorInput", "ctaTextColorInput", "ctaBgColorInput"].forEach(id => {
+          document.getElementById(id).addEventListener("input", updatePreview);
+        });
+
+
+
+
+        // -------------------------------
+        // Handle image file uploads with dimension checks
+        // -------------------------------
+        function updateLogoUpload() {
+          const fileInput = document.getElementById("logoFileInput");
+          fileInput.addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const doc = iframe.contentDocument;
+              // Determine which creative and field we're updating:
+              if (currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") {
+                // Logo must be square and at least 100x100
+                let tempImg = new Image();
+                tempImg.onload = function () {
+                  if (tempImg.naturalWidth === tempImg.naturalHeight && tempImg.naturalWidth >= 100) {
+                    const imgElem = doc.querySelector(".banner-logo img");
+                    if (imgElem) { imgElem.src = e.target.result; }
+                  } else {
+                    alert("For interstitial free text, logo must be square and at least 100x100.");
+                  }
+                };
+                tempImg.src = e.target.result;
+              }
+              else if (currentCreativeType === "pin") {
+                // Logo must be square and at least 100x100
+                let tempImg = new Image();
+                tempImg.onload = function () {
+                  if (tempImg.naturalWidth === tempImg.naturalHeight && tempImg.naturalWidth >= 100) {
+                    const imgElem = doc.querySelector(".banner-logo img");
+                    if (imgElem) { imgElem.src = e.target.result; }
+                  } else {
+                    alert("For Pin on Map, logo must be square and at least 100x100.");
+                  }
+                };
+                tempImg.src = e.target.result;
+              }
+              else if (currentCreativeType === "sticky" && stickySubTypeSelect.value === "free") {
+                // For sticky free text, logo must be square and at least 40x40
+                let tempImg = new Image();
+                tempImg.onload = function () {
+                  if (tempImg.naturalWidth === tempImg.naturalHeight && tempImg.naturalWidth >= 40) {
+                    if (stickyFreeVariantSelect.value === "button") {
+                      const imgElem = doc.querySelector(".banner-icon .img-container img");
+                      if (imgElem) { imgElem.src = e.target.result; }
+                    } else {
+                      const imgElem = doc.querySelector(".sticky-banner .logo img");
+                      if (imgElem) { imgElem.src = e.target.result; }
+                    }
+                  } else {
+                    alert("For sticky free text, logo must be square and at least 40x40.");
+                  }
+                };
+                tempImg.src = e.target.result;
+              }
+              else {
+                // Default update for other cases
                 const imgElem = doc.querySelector(".banner-logo img");
                 if (imgElem) { imgElem.src = e.target.result; }
-              } else {
-                alert("For interstitial free text, logo must be square and at least 100x100.");
               }
+              fileInput.value = "";
             };
-            tempImg.src = e.target.result;
-          }
-          else if (currentCreativeType === "pin") {
-            let tempImg = new Image();
-            tempImg.onload = function() {
-              if (tempImg.naturalWidth === tempImg.naturalHeight && tempImg.naturalWidth >= 100) {
-                const imgElem = doc.querySelector(".banner-logo img");
-                if (imgElem) { imgElem.src = e.target.result; }
-              } else {
-                alert("For Pin on Map, logo must be square and at least 100x100.");
-              }
-            };
-            tempImg.src = e.target.result;
-          }
-          else if (currentCreativeType === "sticky" && stickySubTypeSelect.value === "free") {
-            let tempImg = new Image();
-            tempImg.onload = function() {
-              if (tempImg.naturalWidth === tempImg.naturalHeight && tempImg.naturalWidth >= 40) {
-                if (stickyFreeVariantSelect.value === "button") {
-                  const imgElem = doc.querySelector(".banner-icon .img-container img");
-                  if (imgElem) { imgElem.src = e.target.result; }
-                } else {
-                  const imgElem = doc.querySelector(".sticky-banner .logo img");
-                  if (imgElem) { imgElem.src = e.target.result; }
-                }
-              } else {
-                alert("For sticky free text, logo must be square and at least 40x40.");
-              }
-            };
-            tempImg.src = e.target.result;
-          }
-          else {
-            const imgElem = doc.querySelector(".banner-logo img");
-            if (imgElem) { imgElem.src = e.target.result; }
-          }
-          fileInput.value = "";
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-    updateLogoUpload();
-    
-    document.getElementById("imageFileInput").addEventListener("change", function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const doc = document.getElementById("previewFrame").contentDocument;
-        if (currentCreativeType === "mrec") {
-          if (mrecSubTypeSelect.value === "static") {
-            let tempImg = new Image();
-            tempImg.onload = function() {
-              if (tempImg.naturalWidth === 300 && tempImg.naturalHeight === 250) {
-                const imgElem = doc.querySelector(".mrec-overlay");
-                if (imgElem) { imgElem.src = e.target.result; }
-              } else {
-                alert("For MREC static, please upload an image with dimensions 300x250.");
-              }
-            };
-            tempImg.src = e.target.result;
-          } else {
-            let tempImg = new Image();
-            tempImg.onload = function() {
-              if (tempImg.naturalWidth === 300 && tempImg.naturalHeight === 130) {
-                const imgElem = doc.querySelector(".mrec-overlay .overlay-image");
-                if (imgElem) { imgElem.src = e.target.result; }
-              } else {
-                alert("For MREC free text, please upload an image with dimensions 300x130.");
-              }
-            };
-            tempImg.src = e.target.result;
-          }
-        } else if (currentCreativeType === "sticky") {
-          if (stickySubTypeSelect.value === "static") {
-            let imgElem = doc.querySelector(".sticky-image");
-            if (imgElem) { imgElem.src = e.target.result; }
-          } else {
-            let imgElem = doc.querySelector(".sticky-banner img");
-            if (imgElem) { imgElem.src = e.target.result; }
-          }
-        } else if (currentCreativeType === "interstitial") {
-          if (interstitialSubTypeSelect.value === "static") {
-            let tempImg = new Image();
-            tempImg.onload = function() {
-              if (tempImg.naturalWidth === 640 && tempImg.naturalHeight === 1280) {
-                let imgElem = doc.querySelector(".static-image");
-                if (imgElem) { imgElem.src = e.target.result; }
-              } else {
-                alert("For interstitial static, please upload an image with dimensions 640x1280.");
-              }
-            };
-            tempImg.src = e.target.result;
-          } else {
-            let tempImg = new Image();
-            tempImg.onload = function() {
-              if (tempImg.naturalWidth === 320 && tempImg.naturalHeight === 480) {
-                let imgElem = doc.querySelector(".banner-image img");
-                if (imgElem) { imgElem.src = e.target.result; }
-              } else {
-                alert("For interstitial free text, please upload an image with dimensions 320x480.");
-              }
-            };
-            tempImg.src = e.target.result;
-          }
-        } else {
-          let imgElem = doc.querySelector(".banner-image img");
-          if (imgElem) { imgElem.src = e.target.result; }
+            reader.readAsDataURL(file);
+          });
         }
-        event.target.value = "";
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    function handleStaticUpload() {
-      const fileInput = document.getElementById("imageFileInput");
-      fileInput.addEventListener("change", function(event) {
-        const file = event.target.files[0];
-        if (file && currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "static") {
+        updateLogoUpload();
+
+        // General image input handler with dimension checks for interstitial modes
+        document.getElementById("imageFileInput").addEventListener("change", function (event) {
+          const file = event.target.files[0];
+          if (!file) return;
           const reader = new FileReader();
-          reader.onload = function(e) {
-            const doc = document.getElementById("previewFrame").contentDocument;
-            const imgElem = doc.querySelector(".static-image");
-            if (imgElem) { imgElem.src = e.target.result; }
-            fileInput.value = "";
+          reader.onload = function (e) {
+            const doc = iframe.contentDocument;
+            if (currentCreativeType === "mrec") {
+              if (mrecSubTypeSelect.value === "static") {
+                let tempImg = new Image();
+                tempImg.onload = function () {
+                  if (tempImg.naturalWidth === 300 && tempImg.naturalHeight === 250) {
+                    const imgElem = doc.querySelector(".mrec-overlay");
+                    if (imgElem) { imgElem.src = e.target.result; }
+                  } else {
+                    alert("For MREC static, please upload an image with dimensions 300x250.");
+                  }
+                };
+                tempImg.src = e.target.result;
+              } else {
+                let tempImg = new Image();
+                tempImg.onload = function () {
+                  if (tempImg.naturalWidth === 300 && tempImg.naturalHeight === 130) {
+                    const imgElem = doc.querySelector(".mrec-overlay .overlay-image");
+                    if (imgElem) { imgElem.src = e.target.result; }
+                  } else {
+                    alert("For MREC free text, please upload an image with dimensions 300x130.");
+                  }
+                };
+                tempImg.src = e.target.result;
+              }
+            } else if (currentCreativeType === "sticky") {
+              if (stickySubTypeSelect.value === "static") {
+                let imgElem = doc.querySelector(".sticky-image");
+                if (imgElem) { imgElem.src = e.target.result; }
+              } else {
+                let imgElem = doc.querySelector(".sticky-banner img");
+                if (imgElem) { imgElem.src = e.target.result; }
+              }
+            } else if (currentCreativeType === "interstitial") {
+              if (interstitialSubTypeSelect.value === "static") {
+                // Require exactly 640x1280
+                let tempImg = new Image();
+                tempImg.onload = function () {
+                  if (tempImg.naturalWidth === 640 && tempImg.naturalHeight === 1280) {
+                    let imgElem = doc.querySelector(".static-image");
+                    if (imgElem) { imgElem.src = e.target.result; }
+                  } else {
+                    alert("For interstitial static, please upload an image with dimensions 640x1280.");
+                  }
+                };
+                tempImg.src = e.target.result;
+              } else {
+                // Free text: require exactly 320x480
+                let tempImg = new Image();
+                tempImg.onload = function () {
+                  if (tempImg.naturalWidth === 320 && tempImg.naturalHeight === 480) {
+                    let imgElem = doc.querySelector(".banner-image img");
+                    if (imgElem) { imgElem.src = e.target.result; }
+                  } else {
+                    alert("For interstitial free text, please upload an image with dimensions 320x480.");
+                  }
+                };
+                tempImg.src = e.target.result;
+              }
+            } else {
+              let imgElem = doc.querySelector(".banner-image img");
+              if (imgElem) { imgElem.src = e.target.result; }
+            }
+            event.target.value = "";
           };
           reader.readAsDataURL(file);
-        }
-      });
-    }
-    handleStaticUpload();
-    
-    // -------------------------------
-    // Download screenshot using dom-to-image
-    // -------------------------------
-    document.getElementById("downloadBtn").addEventListener("click", function() {
-      const doc = document.getElementById("previewFrame").contentDocument;
-      domtoimage.toPng(doc.documentElement, { enableCors: true })
-        .then(dataUrl => {
-          const link = document.createElement("a");
-          link.download = "preview.png";
-          link.href = dataUrl;
-          link.click();
-        })
-        .catch(error => {
-          console.error('Screenshot error:', error);
-          alert("Screenshot capture failed.");
         });
-    });
-    
-    // -------------------------------
-    // Copy to Adops: copy input data to clipboard
-    // -------------------------------
-    document.getElementById("copyBtn").addEventListener("click", function() {
-      let text = "";
-      if ((currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") ||
-          currentCreativeType === "pin" ||
-          (currentCreativeType === "sticky" && stickySubTypeSelect.value === "free") ||
-          (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free")) {
-        const title = document.getElementById("titleInput").value || "Default Title";
-        const subtitle = document.getElementById("subtitleInput").value || "Default Subtitle";
-        const cta = document.getElementById("ctaInput").value || "Default CTA";
-        const textColor = document.getElementById("textColorInput").value || "#292a30";
-        const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
-        const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
-        const bgColor = document.getElementById("bgColorInput").value || "white";
-        text =
-          "Title: " + title + "\n" +
-          "Subtitle: " + subtitle + "\n" +
-          "CTA: " + cta + "\n" +
-          "Text Color: " + textColor + "\n" +
-          "CTA Text Color: " + ctaTextColor + "\n" +
-          "CTA Background Color: " + ctaBgColor + "\n" +
-          "Background Color: " + bgColor;
-      } else {
-        text = "Static Image / Static creative – no text fields.";
-      }
-      navigator.clipboard.writeText(text)
-      .then(() => { alert("Copied to Adops!"); })
-      .catch(err => { alert("Copy failed: " + err); });
-    });
+
+        function handleStaticUpload() {
+          const fileInput = document.getElementById("imageFileInput");
+          fileInput.addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (file && currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "static") {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const doc = iframe.contentDocument;
+                const imgElem = doc.querySelector(".static-image");
+                if (imgElem) { imgElem.src = e.target.result; }
+                fileInput.value = "";
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
+        handleStaticUpload();
+
+        // -------------------------------
+        // Download screenshot using dom-to-image
+        // -------------------------------
+        document.getElementById("downloadBtn").addEventListener("click", function () {
+          const doc = iframe.contentDocument;
+          domtoimage.toPng(doc.documentElement, { enableCors: true })
+            .then(dataUrl => {
+              const link = document.createElement("a");
+              link.download = "preview.png";
+              link.href = dataUrl;
+              link.click();
+            })
+            .catch(error => {
+              console.error('Screenshot error:', error);
+              alert("Screenshot capture failed.");
+            });
+        });
+
+        // -------------------------------
+        // Copy to Adops: copy input data to clipboard
+        // -------------------------------
+        document.getElementById("copyBtn").addEventListener("click", function () {
+          let text = "";
+          if ((currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") ||
+            currentCreativeType === "pin" ||
+            (currentCreativeType === "sticky" && stickySubTypeSelect.value === "free") ||
+            (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free")) {
+            const title = document.getElementById("titleInput").value || "Default Title";
+            const subtitle = document.getElementById("subtitleInput").value || "Default Subtitle";
+            const cta = document.getElementById("ctaInput").value || "Default CTA";
+            const textColor = document.getElementById("textColorInput").value || "#292a30";
+            const ctaTextColor = document.getElementById("ctaTextColorInput").value || "white";
+            const ctaBgColor = document.getElementById("ctaBgColorInput").value || "blue";
+            const bgColor = document.getElementById("bgColorInput").value || "white";
+            text =
+              "Title: " + title + "\n" +
+              "Subtitle: " + subtitle + "\n" +
+              "CTA: " + cta + "\n" +
+              "Text Color: " + textColor + "\n" +
+              "CTA Text Color: " + ctaTextColor + "\n" +
+              "CTA Background Color: " + ctaBgColor + "\n" +
+              "Background Color: " + bgColor;
+          } else {
+            text = "Static Image / Static creative – no text fields.";
+          }
+          navigator.clipboard.writeText(text)
+            .then(() => { alert("Copied to Adops!"); })
+            .catch(err => { alert("Copy failed: " + err); });
+        });
+      })
+      .catch(err => {
+        console.error('Failed to load dom-to-image:', err);
+        alert("Failed to load screenshot capture library.");
+      });
   </script>
+
+
 </body>
+
 </html>
