@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Moovit Creative Preview Editor</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="shortcut icon" href="favicon.ico">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="shortcut icon" href="favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Using dom-to-image for screenshot capture -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
@@ -208,10 +208,12 @@
       <label for="subtitleInput">Subtitle:</label>
       <input type="text" id="subtitleInput" placeholder="Enter subtitle">
 
-      <label>
-        <input type="checkbox" id="noSubtitleCheckbox">
-        No Subtitle
-      </label>
+      <div id="noSubtitleWrapper">
+        <label>
+          <input type="checkbox" id="noSubtitleCheckbox">
+          No Subtitle
+        </label>
+      </div>
 
       <!-- CTA fields container -->
       <div id="ctaFields">
@@ -381,7 +383,19 @@
               logoField.style.display = "none";
             }
           }
+          const noSubtitleWrapper = document.getElementById("noSubtitleWrapper");
+          if (
+            (creativeTypeSelect.value === "interstitial" && interstitialSubTypeSelect.value === "free") ||
+            creativeTypeSelect.value === "pin" ||
+            (creativeTypeSelect.value === "mrec" && mrecSubTypeSelect.value === "free")
+          ) {
+            noSubtitleWrapper.style.display = "block";
+          } else {
+            noSubtitleWrapper.style.display = "none";
+          }
+
         }
+
         creativeTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
         interstitialSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
         stickySubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
@@ -1024,48 +1038,48 @@
           }
 
 
-  // Update subtitle only if the creative type is one where subtitle is optional.
-  if ((currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") ||
-      currentCreativeType === "pin" ||
-      (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free")) {
-    const subtitleElem = doc.querySelector(".sub-title");
-    const subtitleSpan = doc.querySelector(".sub-title span");
-    const noSubtitle = document.getElementById("noSubtitleCheckbox").checked;
-    if (subtitleElem) {
-      if (noSubtitle) {
-        subtitleElem.style.display = "none";
-      } else {
-        subtitleElem.style.display = "block";
-        // If user leaves it empty, you could either show a default text or just empty
-        subtitleSpan.textContent = document.getElementById("subtitleInput").value || "Default Subtitle";
-        subtitleElem.style.color = document.getElementById("textColorInput").value || "#292a30";
-      }
-    }
-  } else {
-    // For creative types where subtitle is always required, update as normal.
-    const subtitleElem = doc.querySelector(".sub-title");
-    if (subtitleElem) {
-      subtitleElem.style.display = "block";
-      subtitleElem.querySelector("span").textContent = document.getElementById("subtitleInput").value || "Default Subtitle";
-      subtitleElem.style.color = document.getElementById("textColorInput").value || "#292a30";
-    }
-  }
-
-        // -------------------------------
-        // Handle arrow color change
-        // -------------------------------
-
-        if (
-          currentCreativeType === "sticky" &&
-          stickySubTypeSelect.value === "free" &&
-          stickyFreeVariantSelect.value === "arrow"
-        ) {
-          const arrowColor = document.getElementById("arrowColorSelect").value;
-          const arrowElem = iframe.contentDocument.querySelector(".arrow-btn img");
-          if (arrowElem) {
-            arrowElem.src = arrowColor === "white" ? arrowWhiteIcon : arrowBlackIcon;
+          // Update subtitle only if the creative type is one where subtitle is optional.
+          if ((currentCreativeType === "interstitial" && interstitialSubTypeSelect.value === "free") ||
+            currentCreativeType === "pin" ||
+            (currentCreativeType === "mrec" && mrecSubTypeSelect.value === "free")) {
+            const subtitleElem = doc.querySelector(".sub-title");
+            const subtitleSpan = doc.querySelector(".sub-title span");
+            const noSubtitle = document.getElementById("noSubtitleCheckbox").checked;
+            if (subtitleElem) {
+              if (noSubtitle) {
+                subtitleElem.style.display = "none";
+              } else {
+                subtitleElem.style.display = "block";
+                // If user leaves it empty, you could either show a default text or just empty
+                subtitleSpan.textContent = document.getElementById("subtitleInput").value || "Default Subtitle";
+                subtitleElem.style.color = document.getElementById("textColorInput").value || "#292a30";
+              }
+            }
+          } else {
+            // For creative types where subtitle is always required, update as normal.
+            const subtitleElem = doc.querySelector(".sub-title");
+            if (subtitleElem) {
+              subtitleElem.style.display = "block";
+              subtitleElem.querySelector("span").textContent = document.getElementById("subtitleInput").value || "Default Subtitle";
+              subtitleElem.style.color = document.getElementById("textColorInput").value || "#292a30";
+            }
           }
-        }
+
+          // -------------------------------
+          // Handle arrow color change
+          // -------------------------------
+
+          if (
+            currentCreativeType === "sticky" &&
+            stickySubTypeSelect.value === "free" &&
+            stickyFreeVariantSelect.value === "arrow"
+          ) {
+            const arrowColor = document.getElementById("arrowColorSelect").value;
+            const arrowElem = iframe.contentDocument.querySelector(".arrow-btn img");
+            if (arrowElem) {
+              arrowElem.src = arrowColor === "white" ? arrowWhiteIcon : arrowBlackIcon;
+            }
+          }
 
         }
         ["titleInput", "subtitleInput", "ctaInput", "textColorInput", "ctaTextColorInput", "ctaBgColorInput"].forEach(id => {
