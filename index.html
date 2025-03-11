@@ -531,11 +531,11 @@
       height:844px;
       object-fit:cover;
     }
-    .sticky-overlay {
+    .sticky-overlay-static {
       position: absolute;
       left:0; top:695px;
       width:390px; height:61px;
-      background: var(--bg-color, white);
+      background: var(--bg-color, #18191b);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -554,7 +554,7 @@
 <body>
   <div class="container">
     <img class="base-image" src="${sticky_banner_template}" alt="Placement Background">
-    <div class="sticky-overlay">
+    <div class="sticky-overlay-static">
       <img class="sticky-image" src="${sticky_banner_static_image}" alt="Sticky Banner">
     </div>
   </div>
