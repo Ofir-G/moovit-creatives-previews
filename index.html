@@ -237,7 +237,7 @@
       <input type="text" id="bgColorInput" placeholder="e.g., white or #ffffff">
     </div>
 
-    <button id="downloadBtn">Download Screenshot</button>
+    <button id="downloadBtn">Download Preview</button>
     <button id="copyBtn" style="display: none;">Copy to Adops</button>
   </div>
 
@@ -1253,11 +1253,52 @@
         // Download screenshot using dom-to-image
         // -------------------------------
         document.getElementById("downloadBtn").addEventListener("click", function () {
+          const now = new Date();
+          const dd = String(now.getDate()).padStart(2, '0');
+          const mm = String(now.getMonth() + 1).padStart(2, '0'); // January is 0!
+          const yyyy = now.getFullYear();
+          const hh = String(now.getHours()).padStart(2, '0');
+          const min = String(now.getMinutes()).padStart(2, '0');
+          const dateTimeStr = `${dd}-${mm}-${yyyy} ${hh}-${min}`;
+
+          const creativeTypeSelect = document.getElementById("creativeType");
+          const creativeTypeText = creativeTypeSelect.options[creativeTypeSelect.selectedIndex].text;
+
+          let subTypeText = "";
+          if (creativeTypeSelect.value === "interstitial") {
+            const sub = document.getElementById("interstitialSubType").value;
+            if (sub === "free") {
+              subTypeText = "Free Text";
+            } else if (sub === "static") {
+              subTypeText = "Static";
+            }
+          } else if (creativeTypeSelect.value === "sticky") {
+            const sub = document.getElementById("stickySubType").value;
+            if (sub === "free") {
+              subTypeText = "Free Text";
+            } else if (sub === "static") {
+              subTypeText = "Static";
+            }
+          } else if (creativeTypeSelect.value === "mrec") {
+            const sub = document.getElementById("mrecSubType").value;
+            if (sub === "free") {
+              subTypeText = "Free Text";
+            } else if (sub === "static") {
+              subTypeText = "Static";
+            }
+          }
+
+          let fileName = creativeTypeText;
+          if (subTypeText) {
+            fileName += " - " + subTypeText + " -";
+          }
+          fileName += " " + dateTimeStr + ".png";
+
           const doc = iframe.contentDocument;
           domtoimage.toPng(doc.documentElement, { enableCors: true })
             .then(dataUrl => {
               const link = document.createElement("a");
-              link.download = "preview.png";
+              link.download = fileName;
               link.href = dataUrl;
               link.click();
             })
