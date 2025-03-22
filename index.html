@@ -170,21 +170,28 @@
       </select>
     </div>
 
-    <!-- New: Arrow Color (only for Sticky Free Text Arrow variant) -->
-    <div id="arrowColorWrapper" class="sub-inputs">
-      <label for="arrowColorSelect">Arrow Color:</label>
-      <select id="arrowColorSelect">
-        <option value="white">White</option>
-        <option value="black" selected>Black</option>
-      </select>
-    </div>
-
     <!-- MREC Sub-Type (only for MREC creative type) -->
     <div id="mrecSubWrapper" class="sub-inputs">
       <label for="mrecSubType">MREC Sub-Type:</label>
       <select id="mrecSubType">
         <option value="static" selected>Static Image</option>
         <option value="free">Free Text</option>
+      </select>
+    </div>
+
+    <div id="europeAdBadgeWrapper" style="margin-top:16px;">
+      <label>
+        <input type="checkbox" id="europeAdBadgeCheckbox">
+        Europe Ad Badge
+      </label>
+    </div>
+
+    <!-- New: Arrow Color (only for Sticky Free Text Arrow variant) -->
+    <div id="arrowColorWrapper" class="sub-inputs">
+      <label for="arrowColorSelect">Arrow Color:</label>
+      <select id="arrowColorSelect">
+        <option value="white">White</option>
+        <option value="black" selected>Black</option>
       </select>
     </div>
 
@@ -264,6 +271,7 @@
     let close_button;
     let arrowBlackIcon;
     let arrowWhiteIcon;
+    let europeAdBadge;
 
     // Load JSON file
     fetch('images.json')
@@ -288,6 +296,7 @@
         close_button = images.close_button;
         arrowBlackIcon = images.arrow_black;
         arrowWhiteIcon = images.arrow_white;
+        europeAdBadge = images.europe_ad_badge;
 
         // --- Update field visibility based on creative type and sub-types ---
         const creativeTypeSelect = document.getElementById("creativeType");
@@ -305,9 +314,68 @@
         const bgColorWrapper = document.getElementById("bgColorWrapper");
         const imageFieldWrapper = document.getElementById("imageFieldWrapper");
         const ctaFields = document.getElementById("ctaFields");
+        const badgeWrapper = document.getElementById("europeAdBadgeWrapper");
+
+        function updateBadge() {
+          const badgeCheckbox = document.getElementById("europeAdBadgeCheckbox");
+          const isChecked = badgeCheckbox.checked;
+          const doc = iframe.contentDocument;
+          // Remove any existing badge if present
+          const existingBadge = doc.querySelector('.europe-ad-badge');
+          if (existingBadge) {
+            existingBadge.remove();
+          }
+          if (!isChecked) return;
+
+          // Create the badge element
+          const badgeImg = doc.createElement('img');
+          badgeImg.src = europeAdBadge;
+          badgeImg.alt = "Europe Ad Badge";
+          badgeImg.classList.add("europe-ad-badge");
+          // Style it to sit in the top right corner
+          badgeImg.style.position = "absolute";
+          badgeImg.style.top = "0";
+          badgeImg.style.right = "0";
+          // (Optionally, set width/height as needed)
+
+          // Determine the target container based on creative type:
+          if (currentCreativeType === "sticky") {
+            // For sticky, try to get either overlay container:
+            const overlay = doc.querySelector(".sticky-overlay") || doc.querySelector(".sticky-overlay-static");
+            if (overlay) {
+              overlay.appendChild(badgeImg);
+            }
+          } else if (currentCreativeType === "mrec") {
+            const overlay = doc.querySelector(".mrec-overlay");
+            if (overlay) {
+              overlay.appendChild(badgeImg);
+            }
+          } else if (currentCreativeType === "interstitial") {
+            // For interstitial, append to a container that spans the body.
+            let container = doc.querySelector(".vsc-initialized");
+            if (!container) {
+              container = doc.createElement("div");
+              container.className = "vsc-initialized";
+              container.style.position = "absolute";
+              container.style.top = "0";
+              container.style.right = "0";
+              container.style.zIndex = "100"; // make sure it’s on top
+              doc.body.appendChild(container);
+            }
+            container.appendChild(badgeImg);
+          }
+        }
+
 
         function updateVisibility() {
           const type = creativeTypeSelect.value;
+
+          if (type === "pin") {
+            badgeWrapper.style.display = "none";
+          } else {
+            badgeWrapper.style.display = "block";
+          }
+          
           if (type === "interstitial") {
             interstitialSubWrapper.style.display = "block";
             stickySubWrapper.style.display = "none";
@@ -403,6 +471,7 @@
         mrecSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
         document.getElementById("arrowColorSelect").addEventListener("change", updatePreview);
         document.getElementById("noSubtitleCheckbox").addEventListener("change", updatePreview);
+        document.getElementById("europeAdBadgeCheckbox").addEventListener("change", updateBadge);
         updateVisibility();
 
         // -------------------------------
@@ -821,11 +890,14 @@
       object-fit: contain;
     }
   </style>
+
 </head>
 <body>
   <div class="container">
     <img class="bg" src="${mrec_template}" alt="MREC Background">
-    <img class="mrec-overlay" src="${mrec_static_image}" alt="Overlay Image">
+    <div class="mrec-overlay">
+    <img src="${mrec_static_image}" alt="Overlay Image">
+    </div>
   </div>
 </body>
 </html>
@@ -941,6 +1013,7 @@
         let currentStickyFreeVariant = "arrow";
         let currentMrecSubType = "static";
         const iframe = document.getElementById("previewFrame");
+
         function loadTemplate() {
           currentCreativeType = document.getElementById("creativeType").value;
           let template = "";
@@ -979,6 +1052,7 @@
           setTimeout(updateBackground, 200);
           setTimeout(updatePreview, 200);
         }
+
         creativeTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
         interstitialSubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
         stickySubTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
@@ -1080,8 +1154,9 @@
               arrowElem.src = arrowColor === "white" ? arrowWhiteIcon : arrowBlackIcon;
             }
           }
-
+          updateBadge()
         }
+
         ["titleInput", "subtitleInput", "ctaInput", "textColorInput", "ctaTextColorInput", "ctaBgColorInput"].forEach(id => {
           document.getElementById(id).addEventListener("input", updatePreview);
         });
