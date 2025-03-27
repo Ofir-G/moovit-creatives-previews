@@ -1244,7 +1244,7 @@
                 let tempImg = new Image();
                 tempImg.onload = function () {
                   if (tempImg.naturalWidth === 300 && tempImg.naturalHeight === 250) {
-                    const imgElem = doc.querySelector(".mrec-overlay");
+                    const imgElem = doc.querySelector(".mrec-overlay img");
                     if (imgElem) { imgElem.src = e.target.result; }
                   } else {
                     alert("For MREC static, please upload an image with dimensions 300x250.");
