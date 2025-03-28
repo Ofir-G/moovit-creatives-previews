@@ -117,3 +117,19 @@ iframe {
   height: 844px;
   /* Using default box-sizing so borders don’t affect layout */
 }
+
+#thirdPartyTagInput {
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: #f9fafb;
+  transition: border-color 0.2s ease;
+}
+
+#noLogoWrapper{
+  display: none;
+}

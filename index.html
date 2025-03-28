@@ -64,9 +64,7 @@
     <!-- Third Party Tag input field (for MREC and Sticky Banner) -->
     <div id="thirdPartyTagWrapper" class="sub-inputs">
       <label for="thirdPartyTagInput">Third Party Tag Code:</label>
-      <textarea id="thirdPartyTagInput" rows="6"
-        style="width: 100%; padding: 8px 12px; margin-top: 4px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; color: #374151; background: #f9fafb; transition: border-color 0.2s ease;"
-        placeholder="Paste third party tag code here"></textarea>
+      <textarea id="thirdPartyTagInput" rows="6" placeholder="Paste third party tag code here"></textarea>
     </div>
 
     <div id="europeAdBadgeWrapper" style="margin-top:16px;">
@@ -89,6 +87,13 @@
     <div id="logoField">
       <label for="logoFileInput">Logo:</label>
       <input type="file" id="logoFileInput" accept="image/*">
+    </div>
+
+    <div id="noLogoWrapper">
+      <label>
+        <input type="checkbox" id="noLogoCheckbox">
+        No Logo
+      </label>
     </div>
 
     <!-- General Image input – used for the main image -->
@@ -205,6 +210,9 @@
         const imageFieldWrapper = document.getElementById("imageFieldWrapper");
         const ctaFields = document.getElementById("ctaFields");
         const badgeWrapper = document.getElementById("europeAdBadgeWrapper");
+        const noLogoWrapper = document.getElementById("noLogoWrapper");
+        const noLogoCheckbox = document.getElementById("noLogoCheckbox");
+
 
         function updateBadge() {
           const badgeCheckbox = document.getElementById("europeAdBadgeCheckbox");
@@ -282,6 +290,8 @@
 
           // Hide third party tag wrapper by default
           thirdPartyTagWrapper.style.display = "none";
+          noLogoWrapper.style.display = "none";
+          noLogoCheckbox.checked = false; // Reset checkbox state
 
           if (type === "pin") {
             badgeWrapper.style.display = "none";
@@ -306,6 +316,7 @@
               bgColorWrapper.style.display = "block";
               imageFieldWrapper.style.display = "block";
               ctaFields.style.display = "block";
+              noLogoWrapper.style.display = "block";
             }
           } else if (type === "sticky") {
             stickySubWrapper.style.display = "block";
@@ -400,6 +411,7 @@
         document.getElementById("noSubtitleCheckbox").addEventListener("change", updatePreview);
         document.getElementById("europeAdBadgeCheckbox").addEventListener("change", updateBadge);
         document.getElementById("thirdPartyTagInput").addEventListener("input", updateThirdPartyTag);
+        document.getElementById("noLogoCheckbox").addEventListener("change", updatePreview);
         updateVisibility();
 
         // -------------------------------
@@ -1082,6 +1094,19 @@
               subtitleElem.style.display = "block";
               subtitleElem.querySelector("span").textContent = document.getElementById("subtitleInput").value || "Default Subtitle";
               subtitleElem.style.color = document.getElementById("textColorInput").value || "#292a30";
+            }
+          }
+
+
+          // Update logo visibility
+          const noLogo = document.getElementById("noLogoCheckbox").checked;
+          const logoElem = doc.querySelector(".banner-logo");
+          if (logoElem) {
+            if (noLogo) {
+              logoElem.style.display = "none";
+            } else {
+              logoElem.style.display = "block";
+              logoElem.src = document.getElementById("logoFileInput").value || logoImage;
             }
           }
 
