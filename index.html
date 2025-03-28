@@ -9,127 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Using dom-to-image for screenshot capture -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
-  <style>
-    /* Apply box-sizing only to the left panel and its children */
-    .inputs,
-    .inputs * {
-      box-sizing: border-box;
-    }
-
-    /* Overall layout and background */
-    body {
-      margin: 0;
-      display: flex;
-      height: 100vh;
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #f5f5f7;
-    }
-
-    /* Modern styled left-side panel with Moovit Orange accents */
-    .inputs {
-      width: 320px;
-      padding: 24px;
-      background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      border-right: 1px solid #e5e7eb;
-      overflow-y: auto;
-    }
-
-    .inputs label {
-      display: block;
-      margin-top: 16px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .inputs input[type="text"],
-    .inputs select,
-    .inputs input[type="file"] {
-      width: 100%;
-      padding: 8px 12px;
-      margin-top: 4px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      color: #374151;
-      background: #f9fafb;
-      transition: border-color 0.2s ease;
-    }
-
-    .inputs input[type="text"]:focus,
-    .inputs select:focus,
-    .inputs input[type="file"]:focus {
-      outline: none;
-      border-color: #f57c00;
-      background: #ffffff;
-    }
-
-    .inputs button {
-      margin-top: 24px;
-      width: 100%;
-      padding: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 6px;
-      background: #f57c00;
-      color: #ffffff;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    .inputs button:hover {
-      background: #e67000;
-    }
-
-    /* Ensure download and copy buttons get the correct font */
-    #downloadBtn,
-    #copyBtn {
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    /* Wrappers for conditional fields */
-    .sub-inputs {
-      display: none;
-    }
-
-    #stickyFreeVariantWrapper {
-      display: none;
-    }
-
-    #mrecSubWrapper {
-      display: none;
-    }
-
-    /* Arrow Color selection (only for Sticky Free Text Arrow variant) */
-    #arrowColorWrapper {
-      display: none;
-    }
-
-    #ctaFields {}
-
-    #logoField {}
-
-    #imageFieldWrapper {}
-
-    #bgColorWrapper {}
-
-    .preview {
-      flex-grow: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f0f0f0;
-    }
-
-    iframe {
-      border: 1px solid #000;
-      width: 390px;
-      height: 844px;
-      /* Using default box-sizing so borders don’t affect layout */
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -158,6 +38,7 @@
       <select id="stickySubType">
         <option value="static" selected>Static Image</option>
         <option value="free">Free Text</option>
+        <option value="thirdParty">Third Party Tag</option>
       </select>
     </div>
 
@@ -176,7 +57,16 @@
       <select id="mrecSubType">
         <option value="static" selected>Static Image</option>
         <option value="free">Free Text</option>
+        <option value="thirdParty">Third Party Tag</option>
       </select>
+    </div>
+
+    <!-- Third Party Tag input field (for MREC and Sticky Banner) -->
+    <div id="thirdPartyTagWrapper" class="sub-inputs">
+      <label for="thirdPartyTagInput">Third Party Tag Code:</label>
+      <textarea id="thirdPartyTagInput" rows="6"
+        style="width: 100%; padding: 8px 12px; margin-top: 4px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; color: #374151; background: #f9fafb; transition: border-color 0.2s ease;"
+        placeholder="Paste third party tag code here"></textarea>
     </div>
 
     <div id="europeAdBadgeWrapper" style="margin-top:16px;">
@@ -336,19 +226,38 @@
           badgeImg.style.position = "absolute";
           badgeImg.style.top = "0";
           badgeImg.style.right = "0";
-          // (Optionally, set width/height as needed)
+          badgeImg.style.zIndex = "1000"; // Ensure it's on top of everything
+          badgeImg.style.pointerEvents = "none"; // Prevent it from intercepting clicks
 
           // Determine the target container based on creative type:
           if (currentCreativeType === "sticky") {
-            // For sticky, try to get either overlay container:
-            const overlay = doc.querySelector(".sticky-overlay") || doc.querySelector(".sticky-overlay-static");
-            if (overlay) {
-              overlay.appendChild(badgeImg);
+            if (currentStickySubType === "thirdParty") {
+              // For third party sticky, add to the container div that wraps the third-party-container
+              const container = doc.querySelector(".container");
+              if (container) {
+                // Don't modify the third-party-container directly
+                container.appendChild(badgeImg);
+              }
+            } else {
+              // For regular sticky, try to get either overlay container:
+              const overlay = doc.querySelector(".sticky-overlay") || doc.querySelector(".sticky-overlay-static-image");
+              if (overlay) {
+                overlay.appendChild(badgeImg);
+              }
             }
           } else if (currentCreativeType === "mrec") {
-            const overlay = doc.querySelector(".mrec-overlay");
-            if (overlay) {
-              overlay.appendChild(badgeImg);
+            if (currentMrecSubType === "thirdParty") {
+              // For third party MREC, add to the container div that wraps the third-party-container
+              const container = doc.querySelector(".container");
+              if (container) {
+                // Don't modify the third-party-container directly
+                container.appendChild(badgeImg);
+              }
+            } else {
+              const overlay = doc.querySelector(".mrec-overlay");
+              if (overlay) {
+                overlay.appendChild(badgeImg);
+              }
             }
           } else if (currentCreativeType === "interstitial") {
             // For interstitial, append to a container that spans the body.
@@ -359,7 +268,7 @@
               container.style.position = "absolute";
               container.style.top = "0";
               container.style.right = "0";
-              container.style.zIndex = "100"; // make sure it’s on top
+              container.style.zIndex = "100"; // make sure it's on top
               doc.body.appendChild(container);
             }
             container.appendChild(badgeImg);
@@ -369,13 +278,17 @@
 
         function updateVisibility() {
           const type = creativeTypeSelect.value;
+          const thirdPartyTagWrapper = document.getElementById("thirdPartyTagWrapper");
+
+          // Hide third party tag wrapper by default
+          thirdPartyTagWrapper.style.display = "none";
 
           if (type === "pin") {
             badgeWrapper.style.display = "none";
           } else {
             badgeWrapper.style.display = "block";
           }
-          
+
           if (type === "interstitial") {
             interstitialSubWrapper.style.display = "block";
             stickySubWrapper.style.display = "none";
@@ -405,7 +318,7 @@
               imageFieldWrapper.style.display = "block";
               stickyFreeVariantWrapper.style.display = "none";
               arrowColorWrapper.style.display = "none";
-            } else { // free text for sticky banner
+            } else if (stickySubTypeSelect.value === "free") { // free text for sticky banner
               stickyFreeVariantWrapper.style.display = "block";
               if (stickyFreeVariantSelect.value === "arrow") {
                 textFields.style.display = "block";
@@ -422,6 +335,14 @@
                 ctaFields.style.display = "block";
                 arrowColorWrapper.style.display = "none";
               }
+            } else if (stickySubTypeSelect.value === "thirdParty") { // Third Party Tag for sticky banner
+              textFields.style.display = "none";
+              logoField.style.display = "none";
+              bgColorWrapper.style.display = "none";
+              imageFieldWrapper.style.display = "none"; // Changed from block to none
+              stickyFreeVariantWrapper.style.display = "none";
+              arrowColorWrapper.style.display = "none";
+              thirdPartyTagWrapper.style.display = "block";
             }
           } else if (type === "pin") {
             interstitialSubWrapper.style.display = "none";
@@ -444,11 +365,17 @@
               bgColorWrapper.style.display = "none";
               imageFieldWrapper.style.display = "block";
               logoField.style.display = "none";
-            } else { // free text
+            } else if (mrecSubTypeSelect.value === "free") { // free text
               textFields.style.display = "block";
               bgColorWrapper.style.display = "block";
               imageFieldWrapper.style.display = "block";  // used for overlay image
               logoField.style.display = "none";
+            } else if (mrecSubTypeSelect.value === "thirdParty") { // Third Party Tag for MREC
+              textFields.style.display = "none";
+              bgColorWrapper.style.display = "none";
+              imageFieldWrapper.style.display = "none"; // Changed from block to none
+              logoField.style.display = "none";
+              thirdPartyTagWrapper.style.display = "block";
             }
           }
           const noSubtitleWrapper = document.getElementById("noSubtitleWrapper");
@@ -472,6 +399,7 @@
         document.getElementById("arrowColorSelect").addEventListener("change", updatePreview);
         document.getElementById("noSubtitleCheckbox").addEventListener("change", updatePreview);
         document.getElementById("europeAdBadgeCheckbox").addEventListener("change", updateBadge);
+        document.getElementById("thirdPartyTagInput").addEventListener("input", updateThirdPartyTag);
         updateVisibility();
 
         // -------------------------------
@@ -632,13 +560,19 @@
       margin-left: auto;
       margin-right: auto;
     }
+      .sticky-overlay-static-image {
+  position: relative;
+}
+
   </style>
 </head>
 <body>
   <div class="container">
     <img class="base-image" src="${sticky_banner_template}" alt="Placement Background">
     <div class="sticky-overlay-static">
+      <div class="sticky-overlay-static-image">
       <img class="sticky-image" src="${sticky_banner_static_image}" alt="Sticky Banner">
+      </div>
     </div>
   </div>
 </body>
@@ -1030,6 +964,9 @@
             currentStickySubType = document.getElementById("stickySubType").value;
             if (currentStickySubType === "static") {
               template = stickyStaticTemplate;
+            } else if (currentStickySubType === "thirdParty") {
+              // For third party tag, we'll create the template in updateThirdPartyTag
+              template = createThirdPartyTemplate("sticky");
             } else {
               currentStickyFreeVariant = document.getElementById("stickyFreeVariant").value;
               if (currentStickyFreeVariant === "arrow") {
@@ -1042,6 +979,9 @@
             currentMrecSubType = document.getElementById("mrecSubType").value;
             if (currentMrecSubType === "static") {
               template = mrecTemplate;
+            } else if (currentMrecSubType === "thirdParty") {
+              // For third party tag, we'll create the template in updateThirdPartyTag
+              template = createThirdPartyTemplate("mrec");
             } else {
               template = mrecFreeTemplate;
             }
@@ -1051,6 +991,12 @@
           iframe.contentDocument.close();
           setTimeout(updateBackground, 200);
           setTimeout(updatePreview, 200);
+
+          // If it's a third party tag, update it with the current tag code
+          if ((currentCreativeType === "sticky" && currentStickySubType === "thirdParty") ||
+            (currentCreativeType === "mrec" && currentMrecSubType === "thirdParty")) {
+            setTimeout(updateThirdPartyTag, 200);
+          }
         }
 
         creativeTypeSelect.addEventListener("change", () => { updateVisibility(); loadTemplate(); });
@@ -1161,7 +1107,94 @@
           document.getElementById(id).addEventListener("input", updatePreview);
         });
 
+        // -------------------------------
+        // Handle Third Party Tag input
+        // -------------------------------
+        function createThirdPartyTemplate(type) {
+          // Use a default message if no tag code is provided.
+          const tagCode = document.getElementById("thirdPartyTagInput").value || "<!-- Paste your third party tag here -->";
 
+          // Return a template without an inline script.
+          return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=390, initial-scale=1">
+  <meta charset="UTF-8">
+  <style>
+    html, body { margin:0; padding:0; width:390px; height:844px; background: #fff; }
+    .container { position: relative; width:390px; height:844px; overflow: hidden; }
+    .bg { width: 100%; height: 100%; object-fit: cover; }
+    .third-party-container { 
+      position: absolute;
+      ${type === "sticky" ? "left:0; top:695px; width:390px; height:61px;" : "left: 45px; top: 257px; width: 300px; height: 250px;"}
+      overflow: hidden;
+    }
+    .third-party-iframe { width: 100%; height: 100%; border: none; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img class="bg" src="${type === "sticky" ? sticky_banner_template : mrec_template}" alt="Background">
+    <div class="third-party-container">
+      <!-- Third party tag will be loaded here via updateThirdPartyTag -->
+    </div>
+  </div>
+</body>
+</html>
+  `;
+        }
+
+        function updateThirdPartyTag() {
+          if ((currentCreativeType === "sticky" && currentStickySubType === "thirdParty") ||
+            (currentCreativeType === "mrec" && currentMrecSubType === "thirdParty")) {
+            const tagCode = document.getElementById("thirdPartyTagInput").value;
+            const doc = iframe.contentDocument;
+
+            // Find the third-party container in the iframe
+            const container = doc.querySelector(".third-party-container");
+            if (container) {
+              // Create a new iframe to properly execute the HTML code
+              const innerIframe = doc.createElement('iframe');
+              innerIframe.style.width = '100%';
+              innerIframe.style.height = '100%';
+              innerIframe.style.border = 'none';
+              innerIframe.style.overflow = 'hidden';
+
+              // Clear the container and append the new iframe
+              container.innerHTML = '';
+              container.appendChild(innerIframe);
+
+              // Write the tag code directly to the iframe document to ensure proper execution
+              innerIframe.contentDocument.open();
+              // Add a style tag to override any body margins before writing the tag code
+              innerIframe.contentDocument.write(`
+        <html>
+        <head>
+          <style>
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+            }
+            .vsc-initialized {
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+          </style>
+        </head>
+        <body>
+          ${tagCode}
+        </body>
+        </html>
+      `);
+              innerIframe.contentDocument.close();
+
+              // Apply Europe Ad Badge if checked
+              setTimeout(updateBadge, 200);
+            }
+          }
+        }
 
 
         // -------------------------------
@@ -1263,14 +1296,26 @@
                 };
                 tempImg.src = e.target.result;
               }
-            } else if (currentCreativeType === "sticky") {
-              if (stickySubTypeSelect.value === "static") {
-                let imgElem = doc.querySelector(".sticky-image");
-                if (imgElem) { imgElem.src = e.target.result; }
-              } else {
-                let imgElem = doc.querySelector(".sticky-banner img");
-                if (imgElem) { imgElem.src = e.target.result; }
-              }
+            } else if (currentCreativeType === "sticky" && stickySubTypeSelect.value === "static") {
+              const tempImg = new Image();
+              tempImg.onload = function () {
+                const allowedDimensions = [
+                  { width: 320, height: 50 },
+                  { width: 375, height: 59 },
+                  { width: 390, height: 61 }
+                ];
+                const isValid = allowedDimensions.some(dim =>
+                  tempImg.naturalWidth === dim.width && tempImg.naturalHeight === dim.height
+                );
+                if (isValid) {
+                  const imgElem = doc.querySelector(".sticky-image");
+                  if (imgElem) { imgElem.src = e.target.result; }
+                } else {
+                  alert("For Sticky Banner static, please upload an image with one of the following dimensions: 320x50, 375x59, or 390x61.");
+                }
+              };
+              tempImg.src = e.target.result;
+
             } else if (currentCreativeType === "interstitial") {
               if (interstitialSubTypeSelect.value === "static") {
                 // Require exactly 640x1280
@@ -1419,9 +1464,16 @@
         console.error('Failed to load dom-to-image:', err);
         alert("Failed to load screenshot capture library.");
       });
+
+    function adjustIframeHeight() {
+      const iframe = document.getElementById("previewFrame");
+      // If the window height is less than 844px, use the window height; otherwise use 844px
+      iframe.style.height = window.innerHeight < 844 ? window.innerHeight + "px" : "844px";
+    }
+    // Adjust height on initial load and on every window resize
+    window.addEventListener("resize", adjustIframeHeight);
+    adjustIframeHeight();
   </script>
 
-
 </body>
-
 </html>
